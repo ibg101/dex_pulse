@@ -1,0 +1,9 @@
+[package]
+name = "dex_pulse"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.4.4", features = ["rt-multi-thread", "macros", "sync", "time"] }
+tokio-tungstenite = "0.26.2"
+futures-util = "0.3"
