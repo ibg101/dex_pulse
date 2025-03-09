@@ -7,8 +7,8 @@ use crate::{
         }
     },
     constants::{
-        RAYDIUM_INSTRUCTION_CREATE_NEW_LP, 
-        RAYDIUM_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP
+        METEORA_INSTRUCTION_CREATE_NEW_LP, 
+        METEORA_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP
     }
 };
 
@@ -16,7 +16,7 @@ use tokio::sync::mpsc;
 
 
 impl Dex {
-    pub async fn raydium_creation_event(
+    pub async fn meteora_creation_event(
         &self,
         logs_subscribe: LogsSubscribe<'_>, 
         tx: &mpsc::Sender<(String, Dex)>
@@ -29,19 +29,18 @@ impl Dex {
         for log in logs.into_iter() {
             if is_creation_instruction && is_successfully_created { break; }
     
-            if log.contains(RAYDIUM_INSTRUCTION_CREATE_NEW_LP) {
+            if log.contains(METEORA_INSTRUCTION_CREATE_NEW_LP) {
                 is_creation_instruction = true;
             }
     
-            if log.contains(RAYDIUM_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP) {
+            if log.contains(METEORA_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP) {
                 is_successfully_created = true;
             }
         }
     
         if is_creation_instruction && is_successfully_created {
             let signature: String = logs_value.signature.to_owned();
-            let dex: Dex = self.clone();
-            if let Err(e) = tx.send((signature, dex)).await {
+            if let Err(e) = tx.send((signature, *self)).await {
                 log::error!("Failed to extend signatures channel! {e}");
             }
         }
