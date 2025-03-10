@@ -12,14 +12,16 @@ pub fn init_env() -> std::io::Result<()> {
 
 #[derive(Clone)]
 pub struct Config {
-    pub wss_url_mainnet: String,
+    pub ws_url_mainnet: String,
+    pub http_url_mainnet: String,
     pub channel_username: String
 }
 
 impl Config {
     pub fn init() -> Result<Self, std::env::VarError> {
         Ok(Self {
-            wss_url_mainnet: std::env::var("WSS_URL_MAINNET")?,
+            ws_url_mainnet: std::env::var("WS_URL_MAINNET")?,
+            http_url_mainnet: std::env::var("HTTP_URL_MAINNET")?,
             channel_username: std::env::var("CHANNEL_USERNAME")?
         })
     }

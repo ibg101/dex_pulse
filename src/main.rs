@@ -1,4 +1,5 @@
 mod bot;
+mod rpc;
 mod observations;
 mod processing;
 mod utils;

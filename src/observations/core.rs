@@ -1,6 +1,7 @@
 use crate::{
     bot::config::Config,
-    utils::json_rpc::craft_logs_subscribe_json_rpc,
+    rpc::ws::logs_subscribe::logs_subscribe,
+    utils::rpc::craft_logs_subscribe_json_rpc,
     types::{
         enums::Dex,
         structs::LogsSubscribe
@@ -36,7 +37,7 @@ pub async fn handle_all_logs_subscriptions(
             const DELAY_HANDSHAKE_ERROR: u64 = DELAY * 2;
 
             loop {
-                if let Err(e) = super::logs::logs_subscribe(
+                if let Err(e) = logs_subscribe(
                     &config_clone, 
                     &req_json_rpc, 
                     &sig_tx_clone, 

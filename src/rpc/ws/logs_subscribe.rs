@@ -1,6 +1,6 @@
 use crate::{
     bot::config::Config,
-    utils::wss,
+    utils::ws,
     types::{
         enums::Dex, 
         structs::LogsSubscribe
@@ -31,7 +31,7 @@ pub async fn logs_subscribe(
     tx: &mpsc::Sender<(String, Dex)>,
     dex: &Dex
 ) -> Result<(), tungstenite::Error> {
-    let (ws, _) = connect_async(&config.wss_url_mainnet).await?;
+    let (ws, _) = connect_async(&config.ws_url_mainnet).await?;
     let (write, mut read) = ws.split();
     let arc_write: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>>> = Arc::new(Mutex::new(write));
     
@@ -43,7 +43,7 @@ pub async fn logs_subscribe(
     drop(write_guard);   
 
     let keep_alive_handler: tokio::task::JoinHandle<()> = tokio::task::spawn(
-        wss::keep_connection_alive(Arc::clone(&arc_write), 50)
+        ws::keep_connection_alive(Arc::clone(&arc_write), 50)
     );
 
     while let Some(msg) = read.next().await {
@@ -57,14 +57,14 @@ pub async fn logs_subscribe(
             Ok(Message::Close(_)) => {
                 log::warn!("Received Close Frame!");
                 keep_alive_handler.abort();
-                wss::try_to_close_connection_arc(arc_write).await;
+                ws::try_to_close_connection_arc(arc_write).await;
                 break;
             },
             Ok(_) => {},
             Err(e) => {
                 log::warn!("Received Error Frame! {e}");
                 keep_alive_handler.abort();
-                wss::try_to_close_connection_arc(arc_write).await;
+                ws::try_to_close_connection_arc(arc_write).await;
                 break;
             }
         }

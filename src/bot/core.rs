@@ -1,7 +1,8 @@
 use super::config::Config;
 use crate::{
     observations,
-    types::enums::Dex
+    rpc::client::RpcClient,
+    types::enums::{Dex, CommitmentLevel},
 };
 
 use teloxide::{
@@ -11,7 +12,7 @@ use teloxide::{
 use tokio::sync::mpsc;
 
 
-pub async fn run(config: Config) -> () {
+pub async fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     let bot: Bot = Bot::from_env();
 
     // ---- observation ----
@@ -21,9 +22,13 @@ pub async fn run(config: Config) -> () {
     // ---- observation ----
 
     // ---- processing tx ----
+    let rpc_client: RpcClient = RpcClient::new_with_commitment(
+        config.http_url_mainnet.clone(), 
+        CommitmentLevel::Processed
+    )?;
     // todo!();
     // ---- processing tx ----
-
+    
     // ---- processing meta & filtering ----
     // todo!();
     // ---- processing meta & filtering ----
@@ -35,4 +40,6 @@ pub async fn run(config: Config) -> () {
             log::error!("{:?}", e);
         }
     }
+
+    Ok(())
 }

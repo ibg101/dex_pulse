@@ -3,6 +3,8 @@ use serde::Deserialize;
 
 
 // ---- logs subscribe ----
+// ! implementing custom LogsSubscribe instead of using one from solana_client, in order to minimize Heap Allocation 
+//    in my impl (String is changed to &'a str) 
 #[derive(Deserialize, Debug)]
 pub struct LogsSubscribeValue<'a> {
     pub err: Option<serde_json::Value>,
