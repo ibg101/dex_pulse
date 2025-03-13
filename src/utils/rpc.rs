@@ -1,6 +1,9 @@
 use crate::{
     rpc::client::RpcClient,
-    types::enums::{Error, CommitmentLevel}
+    types::{
+        error::Error,
+        rpc::CommitmentLevel
+    },
 };
 
 
@@ -25,7 +28,7 @@ pub async fn rpc_request_with_retries(
     rpc_client: &RpcClient,
     max_retries: Option<u8>,
     retry_delay_secs: Option<u64>,
-) -> Result<reqwest::Response, Box<dyn std::error::Error>> {
+) -> Result<reqwest::Response, Box<dyn std::error::Error + Send + Sync>> {
     let mut attempt: u8 = 0;
     let max_retries: u8 = max_retries.unwrap_or(5);
     let retry_delay: u64 = retry_delay_secs.unwrap_or(1);

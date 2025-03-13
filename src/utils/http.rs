@@ -1,4 +1,4 @@
-use crate::types::enums::Error;
+use crate::types::error::Error;
 
 use reqwest::{
     Client,

@@ -2,9 +2,9 @@ use crate::{
     bot::config::Config,
     utils::ws,
     types::{
-        enums::Dex, 
-        structs::LogsSubscribe
-    },
+        custom::Dex,
+        rpc::LogsSubscribe
+    }
 };
 
 use std::sync::Arc;

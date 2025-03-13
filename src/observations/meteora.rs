@@ -1,7 +1,7 @@
 use crate::{
     types::{
-        enums::Dex,
-        structs::{
+        custom::Dex,
+        rpc::{
             LogsSubscribe, 
             LogsSubscribeValue
         }

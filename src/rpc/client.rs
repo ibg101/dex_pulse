@@ -1,6 +1,9 @@
 use crate::{
     utils::http,
-    types::enums::{CommitmentLevel, Error}
+    types::{
+        error::Error,
+        rpc::CommitmentLevel
+    },
 };
 
 

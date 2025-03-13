@@ -3,8 +3,8 @@ use crate::{
     rpc::ws::logs_subscribe::logs_subscribe,
     utils::rpc::craft_logs_subscribe_json_rpc,
     types::{
-        enums::Dex,
-        structs::LogsSubscribe
+        custom::Dex,
+        rpc::LogsSubscribe
     },
     constants::{
         RAYDIUM_LP_V4_PROGRAM_ID,
