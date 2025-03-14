@@ -1,38 +1,57 @@
-use std::sync::Arc;
-use tokio::{
-    net::TcpStream,
-    sync::{Mutex, MutexGuard}
+use std::{
+    sync::Arc,
+    fmt::Display
 };
-use futures_util::{SinkExt, stream::SplitSink};
-use tokio_tungstenite::{
-    MaybeTlsStream,
-    WebSocketStream,
-    tungstenite::protocol::Message
+use tokio::sync::{Mutex, MutexGuard};
+use futures_util::{Sink, SinkExt};
+use tokio_tungstenite::tungstenite::{
+    Bytes,
+    Utf8Bytes,
+    protocol::{
+        Message, 
+        frame::{
+            CloseFrame,
+            coding::CloseCode
+        }
+    }
 };
 
 
-pub async fn try_to_close_connection_arc(
-    write: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>>>,  
-) -> () {
-    let mut write_guard: MutexGuard<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>> = write.lock().await;
-    if let Err(e) = write_guard.close().await {
-        log::error!("Failed to properly close WSS! Reconnecting anyway..\nError msg: {e}");
+pub async fn try_to_close_connection_arc<T>(write: Arc<Mutex<T>>, close_code: CloseCode) -> () 
+where
+    T: SinkExt<Message> + Unpin,
+    <T as Sink<Message>>::Error: Display
+{
+    let close_frame: CloseFrame = CloseFrame { code: close_code, reason: Utf8Bytes::from_static("") };
+    let mut write_guard: MutexGuard<T> = write.lock().await;
+    if let Err(e) = write_guard.send(Message::Close(Some(close_frame))).await {
+        log::error!("Failed to properly close WSS!\nError: {e}");
+    }
+    if let Err(e) = write_guard.flush().await {
+        log::error!("Failed to flush WebSocket messages! Possible data loss.\nError: {e}");
     }
 }
 
-pub async fn keep_connection_alive(
-    write: Arc<Mutex<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>>>,
-    send_delay_in_secs: u64
-) -> () {
-    loop {
-        let mut write_guard: MutexGuard<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>> = write.lock().await;
-        if let Err(e) = write_guard.send(Message::Ping(vec![].into())).await {
-            log::error!("Failed to send Ping Frame! {e}");
-        } else {
-            log::info!("Sent Ping!");
-        }
-        drop(write_guard);  // because it will sleep before releasing lock
-
-        tokio::time::sleep(tokio::time::Duration::from_secs(send_delay_in_secs)).await;
+pub async fn send_pong_mutex<T>(write: &Mutex<T>, data: Bytes) -> () 
+where
+    T: SinkExt<Message> + Unpin,
+    <T as Sink<Message>>::Error: Display
+{
+    let mut write_guard: MutexGuard<T> = write.lock().await;
+    if let Err(e) = write_guard.send(Message::Pong(data)).await {
+        log::error!("Failed to send Pong Frame! {e}");
     }
+    log::info!("Sent Pong Frame!");  // todo remove
+}
+
+pub async fn send_ping_mutex<T>(write: &Mutex<T>) -> () 
+where
+    T: SinkExt<Message> + Unpin,
+    <T as Sink<Message>>::Error: Display
+{
+    let mut write_guard: MutexGuard<T> = write.lock().await;
+    if let Err(e) = write_guard.send(Message::Ping(vec![].into())).await {
+        log::error!("Failed to send Ping Frame! {e}");
+    }
+    log::info!("Sent Ping Frame!");  // todo remove
 }

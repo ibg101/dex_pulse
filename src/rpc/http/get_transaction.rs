@@ -12,7 +12,7 @@ use crate::{
 impl RpcClient {
     /// CommitmentLevel::Processed is not supported, so i ignore self.commitment,
     /// and force you to specify the correct one explicitly in fn args.
-    pub async fn get_transaction<S: ToString + serde::Serialize>(
+    pub async fn get_transaction<S: AsRef<[u8]> + serde::Serialize>(
         &self,
         signature: S, 
         commitment: CommitmentLevel
