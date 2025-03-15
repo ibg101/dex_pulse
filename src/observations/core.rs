@@ -15,6 +15,9 @@ use crate::{
 use tokio::sync::mpsc;
 
 
+const RECONNECT_DELAY: u64 = 5;
+const RECONNECT_MAX_DELAY: u64 = 300;
+
 pub async fn handle_all_logs_subscriptions(
     sig_tx: mpsc::Sender<(String, Dex)>,
     config: &Config
@@ -31,12 +34,14 @@ pub async fn handle_all_logs_subscriptions(
         let config_clone: Config = config.clone();
 
         // Creating separated WSS for each DEX due to:
-        // The mentions field currently only supports one Pubkey string per method call. Listing additional addresses will result in an error. 
+        // The mentions field currently only supports one Pubkey string per method call. 
+        // Specifying & Listing to additional addresses will result in an error. 
         tokio::task::spawn(async move {
-            const DELAY: u64 = 30;
-            const DELAY_HANDSHAKE_ERROR: u64 = DELAY * 2;
-
+            let mut exp_backoff: u32 = 1;
+            
             loop {
+                let time_point: tokio::time::Instant = tokio::time::Instant::now();
+
                 if let Err(e) = logs_subscribe(
                     &config_clone, 
                     &req_json_rpc, 
@@ -44,26 +49,32 @@ pub async fn handle_all_logs_subscriptions(
                     &dex
                 ).await {
                     log::error!("WSS error occurred! {e}");
-                    log::warn!("Reconnecting in {} seconds..", DELAY_HANDSHAKE_ERROR);
-                    tokio::time::sleep(tokio::time::Duration::from_secs(DELAY_HANDSHAKE_ERROR)).await;
                 }
-                log::warn!("Reconnecting in {} seconds..", DELAY);
-                tokio::time::sleep(tokio::time::Duration::from_secs(DELAY)).await;
+
+                if time_point.elapsed() >= tokio::time::Duration::from_secs(60) {
+                    exp_backoff = 1;  // reset exponential if elapsed >= 60 seconds
+                } else {
+                    exp_backoff += 1;  // otherwise increase (this approach follows best practices)
+                }
+
+                handle_log_retry(RECONNECT_DELAY, exp_backoff).await;
             }
         });
     }
 }
 
+async fn handle_log_retry(delay: u64, exp_backoff: u32) -> () {    
+    let exp_delay: u64 = std::cmp::min(delay * 2u64.pow(exp_backoff), RECONNECT_MAX_DELAY);
+    log::warn!("Reconnecting in {} seconds..", exp_delay);
+    tokio::time::sleep(tokio::time::Duration::from_secs(exp_delay)).await;
+}
 
 impl Dex {
     // using static dispatch instead of dynamic dispatch with BoxFuture closure inside logs_subscribe()
     pub async fn filter_creation_event(&self, logs_subscribe: LogsSubscribe<'_>, tx: &mpsc::Sender<(String, Dex)>) -> () {
         match self {
             Self::Raydium => self.raydium_lp_creation_event(logs_subscribe, tx).await,
-            // there is no log, that can point on initial lp initialization with liquidity provision 
-            // (InitializeLbPair only creates market_id and pool accounts), therefore i have to use general AddLiqudity log as a filter.
-            // since it's not a 100% new LP tx, additional filters are necessary while processing this tx
-            Self::Meteora => self.meteora_add_liquidity_event(logs_subscribe, tx).await,
+            Self::Meteora => self.meteora_lp_creation_event(logs_subscribe, tx).await,
         }
     }
 }

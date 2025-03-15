@@ -5,6 +5,6 @@ pub const RAYDIUM_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP: &'static str = "Progra
 pub const RAYDIUM_INSTRUCTION_CREATE_NEW_LP: &'static str = "initialize2";
 
 pub const METEORA_DLMM_PROGRAM_ID: &'static str = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo";
-pub const METEORA_INSTRUCTION_SUCCESSFUL_ADD_LIQUIDITY: &'static str = "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo success"; 
+pub const METEORA_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP: &'static str = "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo success"; 
 pub const METEORA_INSTRUCTION_INITIALIZE_POSITION: &'static str = "InitializePosition";
-pub const METEORA_INSTRUCTION_ADD_LIQUIDITY: &'static str = "AddLiquidity";
+pub const METEORA_INSTRUCTION_INITIALIZE_BIN_ARRAY: &'static str = "InitializeBinArray";

@@ -23,14 +23,11 @@ use crate::{
 impl Dex {
     /// 1. Attempt to decode `TransferChecked` instructions (for BASE & QUOTE mints)
     /// 2. Ensure the mint fields in `TokenMeta` are populated
-    /// 3. Skip processing if liquidity has already been provided
     pub async fn meteora_process_transaction(&self, tx: GetTransaction) -> Result<TokenMeta, Box<dyn std::error::Error + Send + Sync>> {
         let mut token_meta: TokenMeta = TokenMeta::default_preallocated();
         let tx_result: TransactionResult = tx.result;
         let account_keys: &[String] = &tx_result.transaction.message.account_keys[..];
-        let pre_balances: &[TokenBalance] = tx_result.meta.pre_token_balances
-            .as_ref()
-            .ok_or(Error::ProcessTransaction)?;
+        
         let inner_instructions: &[InnerInstruction] = tx_result.meta.inner_instructions
             .as_ref()
             .ok_or(Error::ProcessTransaction)?;
@@ -75,16 +72,6 @@ impl Dex {
 
         // enough fields?
         if token_meta.base.mint.len() == 0 || token_meta.quote.mint.len() == 0 { return Err(Error::ProcessTransaction.into()); }
-
-        // is first liquidity supply?        
-        for pre_balance in pre_balances {
-            let ata: &str = &account_keys[pre_balance.account_index];
-            if ata == token_meta.base.vault || ata == token_meta.quote.vault {
-                if let Some(_) = pre_balance.ui_token_amount.ui_amount {
-                    return Err(Error::MeteoraNotAFirstLiqProvision.into());  // isn't the first time liq was added     
-                }
-            }
-        }
 
         Ok(token_meta)
     } 
