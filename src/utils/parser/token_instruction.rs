@@ -25,7 +25,7 @@ pub enum ParsedInstruction {
 }
 
 impl ParsedInstruction {
-    fn parse_signers(mut self, last_nonsigner_index: usize, account_keys: Vec<String>, instruction_accounts: Vec<u8>) -> Self {
+    fn parse_signers(mut self, last_nonsigner_index: usize, account_keys: &[String], instruction_accounts: &[usize]) -> Self {
         match &mut self {
             Self::TransferChecked { signers, .. } => {
                 if instruction_accounts.len() > last_nonsigner_index + 1 {
@@ -36,14 +36,15 @@ impl ParsedInstruction {
                     signers.push(account_keys[instruction_accounts[last_nonsigner_index] as usize].clone());
                 }
                 self
-            }
+            },
+
         }
     }
 }
 
 impl TokenInstruction {
     /// https://github.com/solana-labs/solana/blob/master/transaction-status/src/parse_token.rs#L19
-    pub fn parse(&self, account_keys: Vec<String>, instruction_accounts: Vec<u8>) -> Result<ParsedInstruction, Error> {
+    pub fn parse(&self, account_keys: &[String], instruction_accounts: &[usize]) -> Result<ParsedInstruction, Error> {
         let parsed_instruction = 
             match self {
                 &Self::TransferChecked { amount, decimals } => {

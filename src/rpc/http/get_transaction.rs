@@ -35,14 +35,11 @@ impl RpcClient {
             ]
         });
 
-        let res: reqwest::Response = rpc_request_with_retries(
+        rpc_request_with_retries::<GetTransaction>(
             json_rpc, 
             self, 
             None, 
             None
-        ).await?;
-        let res_body: String = res.text().await?;
-
-        serde_json::from_str::<GetTransaction>(&res_body).map_err(|e| e.into())
+        ).await
     }
 }

@@ -16,7 +16,7 @@ use tokio::sync::mpsc;
 
 
 impl Dex {
-    pub async fn raydium_creation_event(
+    pub async fn raydium_lp_creation_event(
         &self,
         logs_subscribe: LogsSubscribe<'_>, 
         tx: &mpsc::Sender<(String, Dex)>

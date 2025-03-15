@@ -1,6 +1,7 @@
 use crate::{
     rpc::client::RpcClient,
     types::{
+        error::Error,
         custom::{Dex, TokenMeta},
         rpc::{CommitmentLevel, GetTransaction}
     }
@@ -20,15 +21,17 @@ use tokio::sync::mpsc;
 pub async fn emit_filtered_token_meta(
     arc_rpc_client: Arc<RpcClient>,
     mut sig_rx: mpsc::Receiver<(String, Dex)>,
-    tm_tx: mpsc::Sender<TokenMeta>  // todo! create tokenmeta struct and use instead of ()
+    tm_tx: mpsc::Sender<TokenMeta>
 ) -> () {
     tokio::task::spawn(async move {
         while let Some((signature, dex)) = sig_rx.recv().await {
+            log::info!("{dex:?} Recv: {}", signature);  // todo remove
             let arc_rpc_client: Arc<RpcClient> = Arc::clone(&arc_rpc_client);
             
             let handler= tokio::task::spawn(async move {
                 let tx: GetTransaction = arc_rpc_client.get_transaction(signature, CommitmentLevel::Confirmed).await?;
-                let token_meta_raw: TokenMeta = dex.process_transaction(tx).await;
+                let token_meta_raw: TokenMeta = dex.process_transaction(tx).await?;
+                log::info!("{dex:?}\n{:#?}\n", token_meta_raw);  // todo remove !
                 
                 Ok(()) as Result<(), Box<dyn std::error::Error + Send + Sync>>
             });
@@ -42,7 +45,7 @@ pub async fn emit_filtered_token_meta(
 
 impl Dex {
     /// Will return TokenMeta with already known fields, leaving unknown - default
-    pub async fn process_transaction(&self, tx: GetTransaction) -> TokenMeta {
+    pub async fn process_transaction(&self, tx: GetTransaction) -> Result<TokenMeta, Box<dyn std::error::Error + Send + Sync>> {
         match self {
             Dex::Raydium => self.raydium_process_transaction(tx).await,
             Dex::Meteora => self.meteora_process_transaction(tx).await,

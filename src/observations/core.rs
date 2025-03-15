@@ -59,8 +59,11 @@ impl Dex {
     // using static dispatch instead of dynamic dispatch with BoxFuture closure inside logs_subscribe()
     pub async fn filter_creation_event(&self, logs_subscribe: LogsSubscribe<'_>, tx: &mpsc::Sender<(String, Dex)>) -> () {
         match self {
-            Self::Raydium => self.raydium_creation_event(logs_subscribe, tx).await,
-            Self::Meteora => self.meteora_creation_event(logs_subscribe, tx).await,
+            Self::Raydium => self.raydium_lp_creation_event(logs_subscribe, tx).await,
+            // there is no log, that can point on initial lp initialization with liquidity provision 
+            // (InitializeLbPair only creates market_id and pool accounts), therefore i have to use general AddLiqudity log as a filter.
+            // since it's not a 100% new LP tx, additional filters are necessary while processing this tx
+            Self::Meteora => self.meteora_add_liquidity_event(logs_subscribe, tx).await,
         }
     }
 }

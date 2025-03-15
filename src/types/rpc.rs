@@ -27,8 +27,8 @@ struct LogsSubscribeContext {
 
 #[derive(Deserialize, Debug)]
 pub struct LogsSubscribeResult<'a> {
-    context: LogsSubscribeContext,
     pub value: LogsSubscribeValue<'a>,
+    context: LogsSubscribeContext,
     _dummy: Option<&'a str>  // is used in order to pass lifetime to the children (without dummy field it won't compile)
 }
 
@@ -41,11 +41,29 @@ pub struct LogsSubscribeParams<'a> {
 
 #[derive(Deserialize, Debug)]
 pub struct LogsSubscribe<'a> {
+    pub params: LogsSubscribeParams<'a>,
     jsonrpc: &'a str,
     method: &'a str,
-    pub params: LogsSubscribeParams<'a>,
 }
 // ---- rpc logs subscribe ----
+
+
+// ---- rpc tx instruction ----
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Instruction {
+    stack_height: Option<serde_json::Value>,
+    pub accounts: Vec<usize>,  // list of ordered indices into message.account_keys
+    pub program_id_index: usize,
+    pub data: String,  // bs58 encoded data
+}
+
+#[derive(Deserialize, Debug)]
+pub struct InnerInstruction {
+    pub instructions: Vec<Instruction>,
+    index: u8  // unused field for indicing, so u8::MAX (255) is enough
+}
+// ---- rpc tx instruction ----
 
 
 // ---- rpc token ----
@@ -61,11 +79,11 @@ pub struct TokenAmount {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenBalance {
-    pub account_index: u64,
+    pub ui_token_amount: TokenAmount,
     pub mint: String,
     pub owner: String,
     pub program_id: String,
-    pub ui_token_amount: TokenAmount,
+    pub account_index: usize,
 }
 // ---- rpc token ----
 
@@ -81,21 +99,12 @@ pub struct TransactionHeader {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct Instruction {
-    pub accounts: Vec<u64>,
-    pub data: String,
-    program_id_index: u64,
-    stack_height: Option<serde_json::Value>
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
 pub struct TransactionMessage {
+    address_table_lookups: Option<serde_json::Value>,
     pub account_keys: Vec<String>,
     pub instructions: Vec<Instruction>,
     pub header: TransactionHeader,
     pub recent_blockhash: String,
-    address_table_lookups: Option<serde_json::Value>
 }
 
 #[derive(Deserialize, Debug)]
@@ -113,13 +122,13 @@ pub struct TransactionData {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionMeta {
+    err: Option<serde_json::Value>,
     post_balances: Vec<u64>,
     pub post_token_balances: Option<Vec<TokenBalance>>,
     pre_balances: Vec<u64>,
     pub pre_token_balances: Option<Vec<TokenBalance>>,
-    err: Option<serde_json::Value>,
     fee: u64,
-    inner_instructions: Option<Vec<serde_json::Value>>,
+    pub inner_instructions: Option<Vec<InnerInstruction>>,
     rewards: Option<Vec<serde_json::Value>>,
     loaded_addresses: Option<serde_json::Value>,
     return_data: Option<serde_json::Value>,
@@ -143,6 +152,6 @@ pub struct GetTransaction {
     jsonrpc: String,
     #[serde(rename = "blockTime")]
     block_time: Option<u64>,
-    id: u64
+    id: u8
 }
 // ---- rpc get transaction ----
