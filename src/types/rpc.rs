@@ -120,6 +120,12 @@ pub struct TransactionData {
 //   or not implemented yet.
 // Please refer to https://solana.com/docs/rpc/http/gettransaction in order to access necessary fields.
 #[derive(Deserialize, Debug)]
+pub struct LoadedAddresses {
+    pub writable: Vec<String>,
+    pub readonly: Vec<String>,
+}
+
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionMeta {
     err: Option<serde_json::Value>,
@@ -130,7 +136,7 @@ pub struct TransactionMeta {
     fee: u64,
     pub inner_instructions: Option<Vec<InnerInstruction>>,
     rewards: Option<Vec<serde_json::Value>>,
-    loaded_addresses: Option<serde_json::Value>,
+    loaded_addresses: Option<LoadedAddresses>,
     return_data: Option<serde_json::Value>,
     compute_units_consumed: Option<serde_json::Value>,
     /// ## !!! Deprecated field !!!

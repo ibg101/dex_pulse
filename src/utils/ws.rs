@@ -1,5 +1,4 @@
 use std::fmt::Display;
-use tokio::sync::{Mutex, MutexGuard};
 use futures_util::{Sink, SinkExt};
 use tokio_tungstenite::tungstenite::{
     self,
@@ -32,7 +31,7 @@ where
     if let Err(e) = write.send(Message::Pong(data)).await {
         log::error!("Failed to send Pong Frame! {e}");
     }
-    log::info!("Sent Pong Frame!");  // todo remove
+    log::info!("Sent Pong Frame!");
 }
 
 pub async fn send_ping_frame<T>(write: &mut T) -> () 
@@ -43,5 +42,5 @@ where
     if let Err(e) = write.send(Message::Ping(vec![].into())).await {
         log::error!("Failed to send Ping Frame! {e}");
     }
-    log::info!("Sent Ping Frame!");  // todo remove
+    log::info!("Sent Ping Frame!");
 }

@@ -6,7 +6,6 @@ pub enum Error {
     InvalidInstruction,
     ParseInstruction,
     ProcessTransaction,
-    MeteoraNotAFirstLiqProvision
 }
 
 impl std::error::Error for Error {}
@@ -23,7 +22,6 @@ impl std::fmt::Display for Error {
             Self::InvalidInstruction => "Failed to unpack the instruction due to invalid data!",
             Self::ParseInstruction => "Failed to parse an instruction!",
             Self::ProcessTransaction => "Failed to process transaction!",
-            Self::MeteoraNotAFirstLiqProvision => "Ignoring AddLiquidity transaction because liquidity has already been added."
         };
 
         f.write_str(msg)
