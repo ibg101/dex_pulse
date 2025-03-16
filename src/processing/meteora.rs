@@ -11,7 +11,6 @@ use crate::{
             SharedTokenMeta
         }, 
         rpc::{
-            TokenBalance,
             GetTransaction, 
             InnerInstruction, 
             TransactionResult,

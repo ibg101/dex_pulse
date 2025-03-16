@@ -40,7 +40,7 @@ pub async fn handle_all_logs_subscriptions(
             let mut exp_backoff: u32 = 1;
             
             loop {
-                let time_point: tokio::time::Instant = tokio::time::Instant::now();
+                let start_subscription: tokio::time::Instant = tokio::time::Instant::now();
 
                 if let Err(e) = logs_subscribe(
                     &config_clone, 
@@ -51,7 +51,7 @@ pub async fn handle_all_logs_subscriptions(
                     log::error!("WSS error occurred! {e}");
                 }
 
-                if time_point.elapsed() >= tokio::time::Duration::from_secs(60) {
+                if start_subscription.elapsed() >= tokio::time::Duration::from_secs(60) {
                     exp_backoff = 1;  // reset exponential if elapsed >= 60 seconds
                 } else {
                     exp_backoff += 1;  // otherwise increase (this approach follows best practices)
