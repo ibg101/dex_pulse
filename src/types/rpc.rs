@@ -136,7 +136,7 @@ pub struct TransactionMeta {
     fee: u64,
     pub inner_instructions: Option<Vec<InnerInstruction>>,
     rewards: Option<Vec<serde_json::Value>>,
-    loaded_addresses: Option<LoadedAddresses>,
+    pub loaded_addresses: Option<LoadedAddresses>,
     return_data: Option<serde_json::Value>,
     compute_units_consumed: Option<serde_json::Value>,
     /// ## !!! Deprecated field !!!

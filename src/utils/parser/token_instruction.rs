@@ -1,4 +1,7 @@
-use crate::types::error::Error;
+use crate::types::{
+    custom::AccountKeys, 
+    error::Error
+};
 
 
 /// ### Mini Custom parser for spl-token-2022 instruction.
@@ -50,7 +53,7 @@ pub enum ParsedInstruction {
 }
 
 impl ParsedInstruction {
-    fn parse_signers(mut self, last_nonsigner_index: usize, account_keys: &[String], instruction_accounts: &[usize]) -> Result<Self, Error> {
+    fn parse_signers(mut self, last_nonsigner_index: usize, account_keys: &AccountKeys, instruction_accounts: &[usize]) -> Result<Self, Error> {
         let signers: &mut Vec<String> = match &mut self {
             Self::MintTo { mint_signers, .. } => mint_signers,
             Self::Transfer { signers, .. } => signers,
@@ -72,7 +75,7 @@ impl ParsedInstruction {
 
 impl TokenInstruction {
     /// https://github.com/solana-labs/solana/blob/master/transaction-status/src/parse_token.rs#L19
-    pub fn parse(&self, account_keys: &[String], instruction_accounts: &[usize]) -> Result<ParsedInstruction, Error> {
+    pub fn parse(&self, account_keys: &AccountKeys, instruction_accounts: &[usize]) -> Result<ParsedInstruction, Error> {
         let parsed_instruction = 
             match self {
                 &Self::InitializeAccount => {

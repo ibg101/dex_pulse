@@ -7,13 +7,15 @@ use crate::{
         error::Error, 
         custom::{
             Dex, 
-            TokenMeta, 
-            SharedTokenMeta
+            TokenMeta,
+            AccountKeys,
+            SharedTokenMeta,
         }, 
         rpc::{
             GetTransaction, 
             InnerInstruction, 
             TransactionResult,
+            LoadedAddresses
         }
     } 
 };
@@ -25,7 +27,9 @@ impl Dex {
     pub async fn meteora_process_transaction(&self, tx: GetTransaction) -> Result<TokenMeta, Box<dyn std::error::Error + Send + Sync>> {
         let mut token_meta: TokenMeta = TokenMeta::default_preallocated();
         let tx_result: TransactionResult = tx.result;
-        let account_keys: &[String] = &tx_result.transaction.message.account_keys[..];
+        let tx_account_keys: &[String] = &tx_result.transaction.message.account_keys[..];
+        let loaded_addresses: Option<&LoadedAddresses> = tx_result.meta.loaded_addresses.as_ref();
+        let account_keys: AccountKeys = AccountKeys::new(tx_account_keys, loaded_addresses); 
         
         let inner_instructions: &[InnerInstruction] = tx_result.meta.inner_instructions
             .as_ref()
@@ -42,7 +46,7 @@ impl Dex {
 
             if let Ok(token_instruction) = TokenInstruction::unpack(&bytes) {
                 let parsed_instruction: ParsedInstruction = token_instruction
-                    .parse(account_keys, &instruction.accounts)?;
+                    .parse(&account_keys, &instruction.accounts)?;
                 
                 #[allow(irrefutable_let_patterns, unused_variables)]  // must be removed, when other options will be provided
                 if let ParsedInstruction::TransferChecked { 
