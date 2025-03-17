@@ -48,7 +48,7 @@ impl Dex {
                 let parsed_instruction: ParsedInstruction = token_instruction
                     .parse(&account_keys, &instruction.accounts)?;
                 
-                #[allow(irrefutable_let_patterns, unused_variables)]  // must be removed, when other options will be provided
+                #[allow(unused_variables)]
                 if let ParsedInstruction::TransferChecked { 
                     signers, 
                     source,  // senders_ata
@@ -73,7 +73,7 @@ impl Dex {
             }
         }
 
-        // enough fields?
+        // enough fields? (NOTE, this is just a basic check)
         if token_meta.base.mint.len() == 0 || token_meta.quote.mint.len() == 0 { return Err(Error::ProcessTransaction.into()); }
 
         Ok(token_meta)

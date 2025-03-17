@@ -168,8 +168,9 @@ impl TokenInstruction {
         Ok((amount, decimals, rest))
     }
 
-    fn validate_instruction_accounts_len(instruction_accounts: &[usize], expected_len: usize) -> Result<(), Error> {
-        if instruction_accounts.len() != expected_len { return Err(Error::ParseInstruction); }
+    fn validate_instruction_accounts_len(instruction_accounts: &[usize], min_expected_len: usize) -> Result<(), Error> {
+        // using < instead of != in order to handle cases with multiple signers
+        if instruction_accounts.len() < min_expected_len { return Err(Error::ParseInstruction); }
         Ok(())
     }
 }
