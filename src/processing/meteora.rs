@@ -1,3 +1,4 @@
+use super::core::get_mut_shared_token_meta;
 use crate::{
     utils::parser::token_instruction::{
         TokenInstruction,
@@ -57,13 +58,7 @@ impl Dex {
                     amount, 
                     decimals 
                 } = parsed_instruction {
-                    let meta: &mut SharedTokenMeta = 
-                        if token_meta.base.mint.len() == 0 { 
-                            &mut token_meta.base
-                        } else { 
-                            &mut token_meta.quote 
-                        };
-                    
+                    let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(token_meta.base.mint.len() == 0, &mut token_meta);
                     meta.mint = mint;
                     meta.vault = destination;
                     meta.added_liq_amount = amount;

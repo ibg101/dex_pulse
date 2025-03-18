@@ -10,36 +10,52 @@ pub enum Dex {
 // ---- my custom token meta ----
 #[derive(Default, Debug)]
 pub struct TokenMeta {
-    pub signers: Vec<String>,
     pub base: SharedTokenMeta,
-    pub quote: SharedTokenMeta
+    pub quote: SharedTokenMeta,
+    pub signers: Vec<String>,
+    pub raydium_related: Option<TokenMetaRaydium>
 }
 
 #[derive(Default, Debug)]
 pub struct SharedTokenMeta {
     pub mint: String,
     pub vault: String,  // Pool 1 / Pool 2
-    pub added_liq_amount: u64,
+    pub added_liq_amount: u64,  // raw
     pub decimals: u8
 }
 
+#[derive(Default, Debug)]
+pub struct TokenMetaRaydium {
+    pub lp_mint: String,
+    pub added_liq_amount: u64  // raw
+}
+
+const PUBKEY_LEN: usize = 32;
+
 impl TokenMeta {
     pub fn default_preallocated() -> Self {
-        const PUBKEY_LEN: usize = 32;
+        Self { 
+            base: Self::default_preallocated_shared_meta(), 
+            quote: Self::default_preallocated_shared_meta(), 
+            ..Default::default() 
+        }        
+    }
 
-        let base: SharedTokenMeta = SharedTokenMeta {
+    fn default_preallocated_shared_meta() -> SharedTokenMeta {
+        SharedTokenMeta {
             mint: String::with_capacity(PUBKEY_LEN),
             vault: String::with_capacity(PUBKEY_LEN),
             ..Default::default()
-        };
+        }
+    }
+}
 
-        let quote: SharedTokenMeta = SharedTokenMeta {
-            mint: String::with_capacity(PUBKEY_LEN),
-            vault: String::with_capacity(PUBKEY_LEN),
-            ..Default::default()
-        };
-
-        Self { base, quote, ..Default::default() }
+impl TokenMetaRaydium {
+    pub fn default_preallocated() -> Self {
+        Self {
+            lp_mint: String::with_capacity(PUBKEY_LEN), 
+            ..Default::default() 
+        }
     }
 }
 // ---- my custom token meta ----

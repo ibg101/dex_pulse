@@ -2,7 +2,7 @@ use crate::{
     rpc::client::RpcClient,
     types::{
         error::Error,
-        custom::{Dex, TokenMeta},
+        custom::{Dex, TokenMeta, SharedTokenMeta},
         rpc::{CommitmentLevel, GetTransaction}
     }
 };
@@ -50,5 +50,14 @@ impl Dex {
             Dex::Raydium => self.raydium_process_transaction(tx).await,
             Dex::Meteora => self.meteora_process_transaction(tx).await,
         }
+    }
+}
+
+/// Returns *base/quote* `&mut SharedTokenMeta` based on `is_base` condition.
+pub fn get_mut_shared_token_meta(is_base: bool, token_meta: &mut TokenMeta) -> &mut SharedTokenMeta {
+    if is_base {
+        &mut token_meta.base
+    } else {
+        &mut token_meta.quote
     }
 }
