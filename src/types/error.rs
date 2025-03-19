@@ -5,6 +5,7 @@ pub enum Error {
     ReachedMaxRetries,
     InvalidInstruction,
     ParseInstruction,
+    ParseAccount,
     ProcessTransaction,
 }
 
@@ -21,6 +22,7 @@ impl std::fmt::Display for Error {
             Self::ReachedMaxRetries => "Reached max retries while calling RPC method!",
             Self::InvalidInstruction => "Failed to unpack the instruction due to invalid data!",
             Self::ParseInstruction => "Failed to parse an instruction!",
+            Self::ParseAccount => "Failed to parse an account!",
             Self::ProcessTransaction => "Failed to process transaction!",
         };
 

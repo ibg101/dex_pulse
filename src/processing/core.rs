@@ -33,6 +33,7 @@ pub async fn emit_filtered_token_meta(
                 let token_meta_raw: TokenMeta = dex.process_transaction(tx).await?;
                 log::info!("{dex:?}\n{:#?}\n", token_meta_raw);  // todo remove !
                 
+                
                 Ok(()) as Result<(), Box<dyn std::error::Error + Send + Sync>>
             });
 

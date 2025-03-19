@@ -161,3 +161,39 @@ pub struct GetTransaction {
     id: u8
 }
 // ---- rpc get transaction ----
+
+
+// ---- rpc get account info ----
+#[derive(Deserialize, Debug)]
+/// specifically for MarketID
+pub struct GetAccountInfo {
+    pub result: AccountInfoResult,
+    jsonrpc: String,
+    id: u8,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct AccountInfoResult {
+    pub value: Option<AccountInfoValue>,
+    context: AccountInfoContext,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct AccountInfoContext {
+    #[serde(rename = "apiVersion")]
+    api_version: String,
+    slot: u64
+}
+
+#[derive(Deserialize, Debug)]
+pub struct AccountInfoValue {
+    // pub data: [String; 2],  // can be an object depending on encoding parameter (consider using serde_json::Value)
+    pub data: serde_json::Value,
+    executable: bool,
+    lamports: usize,
+    owner: String,
+    #[serde(rename = "rentEpoch")]
+    rent_epoch: usize,
+    space: u64
+}
+// ---- rpc get account info ----

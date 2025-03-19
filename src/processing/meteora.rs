@@ -46,8 +46,10 @@ impl Dex {
             let bytes: Vec<u8> = bs58::decode(&instruction.data).into_vec()?;
 
             if let Ok(token_instruction) = TokenInstruction::unpack(&bytes) {
-                let parsed_instruction: ParsedInstruction = token_instruction
-                    .parse(&account_keys, &instruction.accounts)?;
+                let parsed_instruction: ParsedInstruction = match token_instruction.parse(&account_keys, &instruction.accounts) {
+                    Ok(v) => v,
+                    Err(_) => continue
+                };
                 
                 #[allow(unused_variables)]
                 if let ParsedInstruction::TransferChecked { 

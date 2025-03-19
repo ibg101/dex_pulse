@@ -26,7 +26,10 @@ mod test {
     use super::*;
     use rpc::client::RpcClient;
     use types::{custom::{self, Dex, AccountKeys}, rpc::{CommitmentLevel, LoadedAddresses}};
-    use utils::parser::token_instruction::TokenInstruction;
+    use utils::parser::{
+        token_instruction::TokenInstruction,
+        account::AccountType
+    };
     use futures_util::Future;
 
 
@@ -38,18 +41,23 @@ mod test {
             config.http_url_mainnet.clone(), 
             CommitmentLevel::Processed    
         )?;
-        let raydium_signature: &'static str = "3g6BZKpwWQtmv8guv1HBuoaXUuDg3nQyp9TAWj8C83k3y55SktkXFSbsLtsjGnxkxMx5bmduCnckCay66ViY5kiA"; 
-        // let meteora_signature: &'static str = "2NTyTuYu5zZMnsKAqY7gJfmoQEyj1uKKJEjZcwQPc3DvvFH6XNsXoGnQrVJ6udyjnrYCTTuypvxqTMvnod8XkSVt";
-        let transaction = rpc_client.get_transaction(raydium_signature, CommitmentLevel::Confirmed).await?;
-        println!("{:#?}", transaction);
-        let processed_tx_raw = Dex::Raydium.process_transaction(transaction).await?;
-        println!("{:#?}", processed_tx_raw);
+        // let raydium_signature: &'static str = "3g6BZKpwWQtmv8guv1HBuoaXUuDg3nQyp9TAWj8C83k3y55SktkXFSbsLtsjGnxkxMx5bmduCnckCay66ViY5kiA"; 
+        // // let meteora_signature: &'static str = "2NTyTuYu5zZMnsKAqY7gJfmoQEyj1uKKJEjZcwQPc3DvvFH6XNsXoGnQrVJ6udyjnrYCTTuypvxqTMvnod8XkSVt";
+        // let transaction = rpc_client.get_transaction(raydium_signature, CommitmentLevel::Confirmed).await?;
+        // println!("{:#?}", transaction);
+        // let processed_tx_raw = Dex::Raydium.process_transaction(transaction).await?;
+        // println!("{:#?}", processed_tx_raw);
+
+        // let not_mintable_not_freezable: &str = "y7D9BxVeQ5iwwd7yC8R3VsW1prWpsPkcnq63eSupump";
+        // let mintable_freezable: &str = "4CUAn6CgkcirqTQ9nmpcFtYNaDT3vgWTCZjPL7Tp7Eei";
+        let account_info = rpc_client.get_account_info("2qkfZBW4Vooh9MRYsvDfn6yd5HrkiZfscTdJtpKVpump").await?;
+        println!("account info: {:#?}", account_info);
 
         Ok(())
     }
 
     // #[test]
-    // fn parser() -> Result<(), Box<dyn std::error::Error>> {
+    // fn tx_instruction_parser() -> Result<(), Box<dyn std::error::Error>> {
     //     // let encoded_data: &str = "6ekZrwzFbXXm";  // mintto
     //     // let instruction_accounts: Vec<usize> = vec![4, 10, 16];
     //     // let encoded_data: &str = "3DWrJp21szUo";  // transfer
@@ -112,4 +120,18 @@ mod test {
     //         println!("{}", account_keys[i]);
     //     }
     // }
+
+    #[test]
+    fn account_parser() -> Result<(), Box<dyn std::error::Error>> {
+        // not_mintable_not_freezable
+        // let encoded_data: &str = "11112q78wWJ3FypoJp7jT6jY5cpcDSCskau97g9pweEocSsEvKaQ576oaqnc9K8HBRj5F6Vp4XZaxK83B4QEnNemLpDKmHeZSZhYc4jQ991Wsuh";
+        let encoded_data: &str = "1111Dk7tnoddMvATwtoKYbhf9c51kPxy4Siv5Ubb93zssnp2NB4385QmUMWoc6it7sxezXmUX58o5SjkiaMfEp9QenSyKJHLDUuJJBQXz2r7yZ";
+        // mintable_freezable
+        // let encoded_data: &str = "DK9MzeHSprngGXWSrcu6oBsYBs9rNTiKy3CjDqNN3uJrUry7MFuy86u316TCbmX2Xr7ZYvmE6rkCrGFxzJVdkahanvjhEHowpjLFog8mBnHGutw";
+        let bytes: Vec<u8> = bs58::decode(&encoded_data).into_vec()?;
+        println!("bytes len: {}", bytes.len());
+        println!("{:#?}", AccountType::unpack(&bytes)?);
+
+        Ok(())
+    }
 }
