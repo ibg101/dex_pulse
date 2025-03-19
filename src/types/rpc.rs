@@ -187,8 +187,7 @@ pub struct AccountInfoContext {
 
 #[derive(Deserialize, Debug)]
 pub struct AccountInfoValue {
-    // pub data: [String; 2],  // can be an object depending on encoding parameter (consider using serde_json::Value)
-    pub data: serde_json::Value,
+    pub data: [String; 2],  // can be an object depending on encoding parameter (consider using serde_json::Value)
     executable: bool,
     lamports: usize,
     owner: String,

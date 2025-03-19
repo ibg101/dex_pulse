@@ -35,16 +35,14 @@ pub async fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     let arc_rpc_client: Arc<RpcClient> = Arc::from(rpc_client);
     processing::core::emit_filtered_token_meta(Arc::clone(&arc_rpc_client), sig_rx, tm_tx).await;
 
-    // ! todo remove
-    loop {}
+    while let Some(token_meta) = tm_rx.recv().await {
+        log::info!("Received finalized: {:#?}", token_meta);
+        let msg: String = format!("{:#?}", token_meta);
 
-    // while let Some((signature, dex)) = sig_rx.recv().await {
-    //     let msg: String = format!("{dex:#?}\nLP creation signature: {}", signature);
-
-    //     if let Err(e) = bot.send_message(config.channel_username.clone(), msg).await {
-    //         log::error!("{:?}", e);
-    //     }
-    // }
+        if let Err(e) = bot.send_message(config.channel_username.clone(), msg).await {
+            log::error!("Failed to make a TG post!\nError: {e}");
+        }
+    }
 
     Ok(())
 }

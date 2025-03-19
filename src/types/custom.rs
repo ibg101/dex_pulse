@@ -1,4 +1,5 @@
 use super::rpc::LoadedAddresses;
+use crate::utils::parser::account::AccountType;
 
 
 #[derive(Debug, Clone, Copy)]
@@ -18,16 +19,16 @@ pub struct TokenMeta {
 
 #[derive(Default, Debug)]
 pub struct SharedTokenMeta {
+    pub mint_account: Option<AccountType>,
     pub mint: String,
     pub vault: String,  // Pool 1 / Pool 2
     pub added_liq_amount: u64,  // raw
-    pub decimals: u8
 }
 
 #[derive(Default, Debug)]
 pub struct TokenMetaRaydium {
     pub lp_mint: String,
-    pub added_liq_amount: u64  // raw
+    pub lp_tokens_minted_amount: u64  // raw
 }
 
 const PUBKEY_LEN: usize = 32;

@@ -65,7 +65,7 @@ impl Dex {
                             .raydium_related
                             .get_or_insert(TokenMetaRaydium::default_preallocated());
                         raydium.lp_mint = mint;
-                        raydium.added_liq_amount = amount;
+                        raydium.lp_tokens_minted_amount = amount;
                     },
                     _ => continue
                 }

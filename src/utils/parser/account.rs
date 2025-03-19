@@ -1,6 +1,7 @@
 use crate::types::error::Error;
 
 
+// EXAMPLE: use this for get_account_info()
 /// Custom Lightweight Parser for Solana Account Data
 ///
 /// This custom parser is designed to decode Solana account data in a fast and efficient manner, 

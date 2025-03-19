@@ -51,20 +51,17 @@ impl Dex {
                     Err(_) => continue
                 };
                 
-                #[allow(unused_variables)]
                 if let ParsedInstruction::TransferChecked { 
                     signers, 
-                    source,  // senders_ata
                     mint, 
                     destination, 
                     amount, 
-                    decimals 
+                    ..
                 } = parsed_instruction {
                     let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(token_meta.base.mint.len() == 0, &mut token_meta);
                     meta.mint = mint;
                     meta.vault = destination;
                     meta.added_liq_amount = amount;
-                    meta.decimals = decimals;
                     token_meta.signers = signers;
                 }
             }
