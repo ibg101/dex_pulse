@@ -7,8 +7,10 @@ use crate::{
     types::{
         error::Error, 
         custom::{
-            Dex, 
-            TokenMeta,
+            Dex,
+            Unpack,
+            Parser, 
+            PairMeta,
             AccountKeys,
             SharedTokenMeta,
         }, 
@@ -24,9 +26,9 @@ use crate::{
 
 impl Dex {
     /// 1. Attempt to decode `TransferChecked` instructions (for BASE & QUOTE mints)
-    /// 2. Ensure the mint fields in `TokenMeta` are populated
-    pub async fn meteora_process_transaction(&self, tx: GetTransaction) -> Result<TokenMeta, Box<dyn std::error::Error + Send + Sync>> {
-        let mut token_meta: TokenMeta = TokenMeta::default_preallocated();
+    /// 2. Ensure the mint fields in `PairMeta` are populated
+    pub async fn meteora_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
+        let mut pair_meta: PairMeta = PairMeta::default_preallocated();
         let tx_result: TransactionResult = tx.result;
         let tx_account_keys: &[String] = &tx_result.transaction.message.account_keys[..];
         let loaded_addresses: Option<&LoadedAddresses> = tx_result.meta.loaded_addresses.as_ref();
@@ -41,7 +43,7 @@ impl Dex {
             .ok_or(Error::ProcessTransaction)?;
         
         for instruction in add_liquidity_instruction.instructions.iter() {
-            if token_meta.base.mint.len() > 0 && token_meta.quote.mint.len() > 0 { break; }
+            if pair_meta.base.mint.len() > 0 && pair_meta.quote.mint.len() > 0 { break; }
 
             let bytes: Vec<u8> = bs58::decode(&instruction.data).into_vec()?;
 
@@ -58,18 +60,18 @@ impl Dex {
                     amount, 
                     ..
                 } = parsed_instruction {
-                    let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(token_meta.base.mint.len() == 0, &mut token_meta);
+                    let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.mint.len() == 0, &mut pair_meta);
                     meta.mint = mint;
                     meta.vault = destination;
-                    meta.added_liq_amount = amount;
-                    token_meta.signers = signers;
+                    meta.provided_liq_amount = amount;
+                    pair_meta.signers = signers;
                 }
             }
         }
 
         // enough fields? (NOTE, this is just a basic check)
-        if token_meta.base.mint.len() == 0 || token_meta.quote.mint.len() == 0 { return Err(Error::ProcessTransaction.into()); }
+        if pair_meta.base.mint.len() == 0 || pair_meta.quote.mint.len() == 0 { return Err(Error::ProcessTransaction.into()); }
 
-        Ok(token_meta)
+        Ok(pair_meta)
     } 
 }

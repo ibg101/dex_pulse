@@ -1,3 +1,4 @@
+// if more error options will be added - create separated struct.
 #[derive(Debug)]
 pub enum Error {
     CreateHttpClient,
@@ -5,7 +6,10 @@ pub enum Error {
     ReachedMaxRetries,
     InvalidInstruction,
     ParseInstruction,
+    ParseSystemInstruction,
     ParseAccount,
+    UnpackOptionKey,
+    ArrayFromSlice,
     ProcessTransaction,
 }
 
@@ -22,7 +26,10 @@ impl std::fmt::Display for Error {
             Self::ReachedMaxRetries => "Reached max retries while calling RPC method!",
             Self::InvalidInstruction => "Failed to unpack the instruction due to invalid data!",
             Self::ParseInstruction => "Failed to parse an instruction!",
+            Self::ParseSystemInstruction => "Failed to parse a system instruction!",
             Self::ParseAccount => "Failed to parse an account!",
+            Self::UnpackOptionKey => "Failed to unpack option key!",
+            Self::ArrayFromSlice => "Failed to create an array from slice!",
             Self::ProcessTransaction => "Failed to process transaction!",
         };
 

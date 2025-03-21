@@ -1,4 +1,11 @@
-use crate::types::error::Error;
+use super::shared::{
+    unpack_option_key,
+    try_array_from_slice
+};
+use crate::types::{
+    error::Error,
+    custom::Unpack
+};
 
 
 // EXAMPLE: use this for get_account_info()
@@ -25,15 +32,15 @@ pub enum AccountType {
 const MINT_LEN: usize = 82;
 const ACCOUNT_LEN: usize = 165;
 
-impl AccountType {
-    pub fn unpack(data: &[u8]) -> Result<Self, Error> {
+impl Unpack for AccountType {
+    fn unpack(data: &[u8]) -> Result<Self, Error> {
         Ok(match data.len() {
             MINT_LEN => {
-                let mint_authority: [u8; 36] = Self::try_array_from_slice(&data, 0, 36)?;
-                let supply: [u8; 8] = Self::try_array_from_slice(&data, 36, 44)?;
-                let decimals: [u8; 1] = Self::try_array_from_slice(&data, 44, 45)?;
-                let is_initialized: [u8; 1] = Self::try_array_from_slice(&data, 45, 46)?;
-                let freeze_authority: [u8; 36] = Self::try_array_from_slice(&data, 46, 82)?;
+                let mint_authority: [u8; 36] = try_array_from_slice(&data, 0, 36)?;
+                let supply: [u8; 8] = try_array_from_slice(&data, 36, 44)?;
+                let decimals: [u8; 1] = try_array_from_slice(&data, 44, 45)?;
+                let is_initialized: [u8; 1] = try_array_from_slice(&data, 45, 46)?;
+                let freeze_authority: [u8; 36] = try_array_from_slice(&data, 46, 82)?;
                 
                 let is_initialized: bool = match is_initialized {
                     [0] => false,
@@ -45,11 +52,11 @@ impl AccountType {
                 };
 
                 Self::Mint { 
-                    mint_authority: Self::unpack_option_key(mint_authority)?, 
+                    mint_authority: unpack_option_key(mint_authority)?, 
                     supply: u64::from_le_bytes(supply), 
                     decimals: decimals[0], 
                     is_initialized, 
-                    freeze_authority: Self::unpack_option_key(freeze_authority)? 
+                    freeze_authority: unpack_option_key(freeze_authority)? 
                 }
             },
             ACCOUNT_LEN => {
@@ -57,25 +64,6 @@ impl AccountType {
                 unimplemented!()
             },
             _ => unreachable!()
-        })
-    }
-
-    fn unpack_option_key(key: [u8; 36]) -> Result<Option<String>, Error> {
-        let (tag, pubkey) = key.split_at(4);
-        match *tag {
-            [0, 0, 0, 0] => Ok(None),
-            [1, 0, 0, 0] => Ok(Some(bs58::encode(pubkey).into_string())),
-            _ => {
-                log::error!("Invalid Pubkey Tag!");
-                Err(Error::ParseAccount)
-            }
-        }
-    }
-
-    fn try_array_from_slice<const L: usize>(d: &[u8], start: usize, end: usize) -> Result<[u8; L], Error> {
-        d[start..end].try_into().map_err(|e| {
-            log::error!("Caused an error: {e}");
-            Error::ParseAccount
         })
     }
 }

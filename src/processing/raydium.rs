@@ -1,8 +1,14 @@
 use super::core::get_mut_shared_token_meta;
 use crate::{
-    utils::parser::token_instruction::{
-        TokenInstruction, 
-        ParsedInstruction
+    utils::parser::{
+        system_instruction::{
+            self,
+            SystemInstruction
+        },
+        token_instruction::{
+            self,
+            TokenInstruction
+        }
     },
     types::{
         error::Error,
@@ -14,18 +20,21 @@ use crate::{
         },
         custom::{
             Dex, 
-            TokenMeta, 
+            Unpack,
+            Parser, 
+            PairMeta,
             SharedTokenMeta,
-            TokenMetaRaydium,
+            PairMetaRaydium,
             AccountKeys,
         },
-    }
+    },
+    constants::RAYDIUM_LP_V4_PROGRAM_ID
 };
 
 
 impl Dex {
-    pub async fn raydium_process_transaction(&self, tx: GetTransaction) -> Result<TokenMeta, Box<dyn std::error::Error + Send + Sync>> {
-        let mut token_meta: TokenMeta = TokenMeta::default_preallocated();
+    pub async fn raydium_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
+        let mut pair_meta: PairMeta = PairMeta::default_preallocated();
         let tx_result: TransactionResult = tx.result;
         let tx_account_keys: &[String] = &tx_result.transaction.message.account_keys[..];
         let loaded_addresses: Option<&LoadedAddresses> = tx_result.meta.loaded_addresses.as_ref();
@@ -42,28 +51,42 @@ impl Dex {
         for instruction in initialize_lp_instruction.instructions.iter() {
             let bytes: Vec<u8> = bs58::decode(&instruction.data).into_vec()?;
 
+            if let Ok(system_instruction) = SystemInstruction::unpack(&bytes) {  
+                let parsed_instruction: system_instruction::ParsedInstruction = match system_instruction.parse(&account_keys, &instruction.accounts) {
+                    Ok(v) => v,
+                    Err(_) => continue
+                };
+                // since there is only 1 option available -> it's sufficient
+                let system_instruction::ParsedInstruction::Assign { account, owner } = parsed_instruction;
+                if owner != RAYDIUM_LP_V4_PROGRAM_ID {
+                    continue;
+                } else {
+                    pair_meta.market_id = account;
+                }
+            }
+
             if let Ok(token_instruction) = TokenInstruction::unpack(&bytes) {
-                let parsed_instruction: ParsedInstruction = match token_instruction.parse(&account_keys, &instruction.accounts) {
+                let parsed_instruction: token_instruction::ParsedInstruction = match token_instruction.parse(&account_keys, &instruction.accounts) {
                     Ok(v) => v,
                     Err(_) => continue
                 };
 
                 match parsed_instruction {
-                    ParsedInstruction::InitializeAccount { account, mint, .. } => {
-                        let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(token_meta.base.mint.len() == 0, &mut token_meta);
+                    token_instruction::ParsedInstruction::InitializeAccount { account, mint, .. } => {
+                        let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.mint.len() == 0, &mut pair_meta);
                         meta.mint = mint;
                         meta.vault = account;
                     },
-                    ParsedInstruction::Transfer { signers, destination, amount, .. } => {
-                        let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(token_meta.base.vault == destination, &mut token_meta);
+                    token_instruction::ParsedInstruction::Transfer { signers, destination, amount, .. } => {
+                        let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.vault == destination, &mut pair_meta);
                         meta.vault = destination;
-                        meta.added_liq_amount = amount;
-                        token_meta.signers = signers;
+                        meta.provided_liq_amount = amount;
+                        pair_meta.signers = signers;
                     },
-                    ParsedInstruction::MintTo { mint, amount, .. } => {
-                        let raydium: &mut TokenMetaRaydium = token_meta
+                    token_instruction::ParsedInstruction::MintTo { mint, amount, .. } => {
+                        let raydium: &mut PairMetaRaydium = pair_meta
                             .raydium_related
-                            .get_or_insert(TokenMetaRaydium::default_preallocated());
+                            .get_or_insert(PairMetaRaydium::default_preallocated());
                         raydium.lp_mint = mint;
                         raydium.lp_tokens_minted_amount = amount;
                     },
@@ -73,8 +96,8 @@ impl Dex {
         }
 
         // enough fields? (NOTE, this is just a basic check)
-        if token_meta.base.mint.len() == 0 || token_meta.quote.mint.len() == 0 { return Err(Error::ProcessTransaction.into()); }
+        if pair_meta.base.mint.len() == 0 || pair_meta.quote.mint.len() == 0 { return Err(Error::ProcessTransaction.into()); }
 
-        Ok(token_meta)
+        Ok(pair_meta)
     }
 }

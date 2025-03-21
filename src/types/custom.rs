@@ -1,4 +1,7 @@
-use super::rpc::LoadedAddresses;
+use super::{
+    rpc::LoadedAddresses,
+    error::Error
+};
 use crate::utils::parser::account::AccountType;
 
 
@@ -8,13 +11,14 @@ pub enum Dex {
     Meteora
 }
 
-// ---- my custom token meta ----
+// ---- my custom pair meta ----
 #[derive(Default, Debug)]
-pub struct TokenMeta {
+pub struct PairMeta {
     pub base: SharedTokenMeta,
     pub quote: SharedTokenMeta,
     pub signers: Vec<String>,
-    pub raydium_related: Option<TokenMetaRaydium>
+    pub raydium_related: Option<PairMetaRaydium>,
+    pub market_id: String
 }
 
 #[derive(Default, Debug)]
@@ -22,18 +26,19 @@ pub struct SharedTokenMeta {
     pub mint_account: Option<AccountType>,
     pub mint: String,
     pub vault: String,  // Pool 1 / Pool 2
-    pub added_liq_amount: u64,  // raw
+    pub provided_liq_amount: u64,  // raw,
+    pub provided_liq_ratio: Option<f64>
 }
 
 #[derive(Default, Debug)]
-pub struct TokenMetaRaydium {
+pub struct PairMetaRaydium {
     pub lp_mint: String,
     pub lp_tokens_minted_amount: u64  // raw
 }
 
 const PUBKEY_LEN: usize = 32;
 
-impl TokenMeta {
+impl PairMeta {
     pub fn default_preallocated() -> Self {
         Self { 
             base: Self::default_preallocated_shared_meta(), 
@@ -51,7 +56,7 @@ impl TokenMeta {
     }
 }
 
-impl TokenMetaRaydium {
+impl PairMetaRaydium {
     pub fn default_preallocated() -> Self {
         Self {
             lp_mint: String::with_capacity(PUBKEY_LEN), 
@@ -101,3 +106,16 @@ impl<'a> AccountKeys<'a> {
         None
     } 
 }
+
+pub trait Unpack: Sized {
+    fn unpack(data: &[u8]) -> Result<Self, Error>; 
+}
+
+pub trait Parser<T> {
+    fn parse(self, account_keys: &AccountKeys, instruction_accounts: &[usize]) -> Result<T, Error>;
+}
+
+// can be used for ParsedInstruction (each parser has it's own struct, however by now only token_instruction's uses parse_signers method)
+// pub trait Signable: Sized {
+//     fn parse_signers(self, last_nonsigner_index: usize, account_keys: &AccountKeys, instruction_accounts: &[usize]) -> Result<Self, Error>;
+// }
