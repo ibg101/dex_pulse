@@ -8,11 +8,11 @@ Built with **Rust**, this tool leverages the language’s performance to ensure 
 
 - **Real-Time Liquidity Pool Detection**: DEX Pulse scans for newly created liquidity pools on the Solana blockchain and provides critical metadata in real-time.
 - **Optimized Performance**: The bot is optimized using Rust’s performance capabilities, enabling early detection of transactions before they are finalized.
-- **Custom Parsers**: The project uses custom-built parsers to analyze transaction instructions. This minimizes code size, reduces the reliance on external crates, and enhances performance by using **base58** encoding in RPC requests **instead of the heavier jsonParsed** format.
+- **Custom Parsers**: The project uses custom-built parsers to analyze instructions. This minimizes code size, reduces the reliance on external crates, and enhances performance by using **base58** encoding in RPC requests **instead of the heavier jsonParsed** format.
 - **Custom Lightweight RpcClient**: This project uses a custom, lightweight RpcClient, which allows for minimal overhead and maximum performance. Unlike most projects, it does not rely on the Solana official crates, which ensures better control and efficiency when interacting with Solana RPC.
 - **No External Services or Aggregators**: This project doesn't rely on aggregators or other third-party services, except for plain **Solana RPC**. This ensures maximum control, security, and reliability.
 - **Multi-DEX Support**: The architecture is designed to support unlimited DEX platforms. Currently, **Raydium** and **Meteora** are implemented, with plans to extend support to other platforms in the future.
-- **Telegram Integration**: The bot can post real-time liquidity pool data to a [Telegram channel](https://t.me/dex_pulse_scanner), providing insights on new pools immediately after they are created. Additionally, you can configure the bot to send updates to **your own Telegram channel**. To do this, simply set the `CHANNEL_USERNAME` variable in the `.env` file to `@your_channel` (replace with your actual Telegram channel username). This requires setting up the project locally or [getting in touch with me](https://t.me/ivn_bets) to configure it for you.
+- **Telegram Integration**: The bot can post real-time liquidity pool data to a [Telegram channel](https://t.me/dex_pulse_scanner), providing insights on new pools immediately after they are created. Additionally, you can configure the bot to send updates to **your own Telegram channel**. To do this, simply set the `TELOXIDE_TOKEN` variable to the token, which can be obtained from `@BotFather` on Telegram and `CHANNEL_USERNAME` variable to `@your_channel` (replace with your actual Telegram channel username) in the `.env` file. This requires setting up the project locally or [getting in touch with me](https://t.me/ivn_bets) to configure it for you.
 
 ## Metadata Provided
 
@@ -34,7 +34,7 @@ For every new liquidity pool detected, the bot extracts and displays the followi
 ## Architecture
 
 - **Rust-Based**: The project is written in Rust to leverage its performance and memory safety features.
-- **Custom Transaction Parsers**: Transaction instruction parsers are custom-built and located in the utils/parser/ directory. These parsers handle the analysis of transactions without relying on external libraries, which reduces overhead and increases speed.
+- **Custom Instruction Parsers**: Instruction parsers are custom-built and located in the utils/parser/ directory. These parsers handle the analysis of instructions without relying on external libraries, which reduces overhead and increases speed.
 - **Custom Lightweight RpcClient**: The project uses a custom, lightweight RpcClient and located in the rpc/ directory, which avoids the need for Solana crates and provides minimal overhead for maximum performance when interacting with Solana RPC.
 - **Support for Multiple DEXs**: While the current implementation supports Raydium and Meteora, the architecture allows for easy extension to additional Solana-based DEX platforms in the future.
 - **Modular Architecture**: The project is divided into several modular components, each designed to handle specific tasks. This structure allows for clean separation of concerns and scalability.
@@ -62,7 +62,17 @@ After installing Rust, run:
 cargo build --release
 ```
 3. **Configure the `.env` file**:
-todo!
+
+- `RUST_LOG` - Specifies the logging level. The available options are:.
+  - `debug` - Logs detailed information for debugging purposes.
+  - `info` - Logs general information about the operation of the bot.
+  - `warn` - Logs warnings about potential issues that might not cause errors.
+  - `error` - Logs errors and critical issues that may halt the bot's operation.
+  - `off` - Disables logging (not recommended for production).
+- `TELOXIDE_TOKEN` - The Telegram bot token, which can be obtained from `@BotFather` on Telegram.
+- `WS_URL_MAINNET` - The WebSocket endpoint URL for Solana's mainnet. This can be obtained from your Solana RPC provider. **DO NOT USE public endpoints!**
+- `HTTP_URL_MAINNET` - The HTTP endpoint URL for Solana's mainnet. This can also be obtained from your Solana RPC provider.
+- `CHANNEL_USERNAME` - The username of the Telegram channel where the bot will post. Example: `@dex_pulse_scanner`.
 
 4. **Running the Bot**:
 
