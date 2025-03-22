@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod test {
     #![allow(unused_imports, dead_code)]
-    use crate::types::custom::{Parser, Unpack};
+    use crate::types::custom::{PairMeta, Parser, SharedTokenMeta, PairMetaRaydium, Unpack};
 
     use super::*;
     use rpc::client::RpcClient;
@@ -183,16 +183,70 @@ mod test {
     //     Ok(())
     // }
 
-    #[test]
-    fn meteora_parse_market_id_from_anchor_cpi_log() -> Result<(), Box<dyn std::error::Error>> {
-        let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oeeV8xJDpYQ8QJHMaN1Yy9xzv4iwVZNbHv2MVPVTcJqLWGQrPzd5kHZDVWCRGK47GjpGFB2nn56tx5FURwCtxsgNV67Tbczw58He4sQHZiQ5WLEbmBZErL7nQkpZh1LZpdMxnj3fKrtGsdpyTsE7iQnEAkDhSqX6N";
-        // let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oee5T9HqsdFuBqY8daxpjQpsFmKdgEW2UMqJt4jedPSksNm774bpoX3Ar7vT4UKJYfyh3WV4y8izmodKLYv7ZvSsQkEeZtkLF7L2JPYSENMLLaf2ozyaG5ZBwbPEPDhqrz7biDbBJFkbjd1QETwh5LRZnfXKTzWai";
-        // let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oegL4SNcPQMkFbQ1uc7NwfcuVphjkSb6z3aKFkLmi6S8wYAaL2FMSGAvxk1t3YzBsg2qX17jwot3X2Z2YNR5zX1D8F5UvCYLHJG3sSnk9bf4gu4DM1DjtLKB2rMvAQXh7K57UKbAL7ZAc7n3zUbFSJHaf5tm1kDQb";
-        let bytes: Vec<u8> = bs58::decode(encoded_data).into_vec()?;
+    // #[test]
+    // fn meteora_parse_market_id_from_anchor_cpi_log() -> Result<(), Box<dyn std::error::Error>> {
+    //     let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oeeV8xJDpYQ8QJHMaN1Yy9xzv4iwVZNbHv2MVPVTcJqLWGQrPzd5kHZDVWCRGK47GjpGFB2nn56tx5FURwCtxsgNV67Tbczw58He4sQHZiQ5WLEbmBZErL7nQkpZh1LZpdMxnj3fKrtGsdpyTsE7iQnEAkDhSqX6N";
+    //     // let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oee5T9HqsdFuBqY8daxpjQpsFmKdgEW2UMqJt4jedPSksNm774bpoX3Ar7vT4UKJYfyh3WV4y8izmodKLYv7ZvSsQkEeZtkLF7L2JPYSENMLLaf2ozyaG5ZBwbPEPDhqrz7biDbBJFkbjd1QETwh5LRZnfXKTzWai";
+    //     // let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oegL4SNcPQMkFbQ1uc7NwfcuVphjkSb6z3aKFkLmi6S8wYAaL2FMSGAvxk1t3YzBsg2qX17jwot3X2Z2YNR5zX1D8F5UvCYLHJG3sSnk9bf4gu4DM1DjtLKB2rMvAQXh7K57UKbAL7ZAc7n3zUbFSJHaf5tm1kDQb";
+    //     let bytes: Vec<u8> = bs58::decode(encoded_data).into_vec()?;
 
-        println!("size: {}", bytes.len());
+    //     println!("size: {}", bytes.len());
 
-        println!("{}", bs58::encode(&bytes[16..48]).into_string());  // lb pair
+    //     println!("{}", bs58::encode(&bytes[16..48]).into_string());  // lb pair
+
+    //     Ok(())
+    // }
+
+    #[tokio::test]
+    async fn build_post() -> Result<(), Box<dyn std::error::Error>> {
+        use teloxide::{
+            Bot,
+            prelude::Requester, 
+            payloads::SendMessageSetters, 
+            types::ParseMode::MarkdownV2, 
+        };
+
+        bot::config::init_env()?;
+        pretty_env_logger::init();
+
+        let test_pair_meta: PairMeta = PairMeta {
+            base: SharedTokenMeta {
+                mint_account: Some(AccountType::Mint {
+                    mint_authority: None,
+                    supply: 10000000000000000,
+                    decimals: 6,
+                    is_initialized: true,
+                    freeze_authority: None,
+                }),
+                mint: "BiFFcvhZtyjYYag5mERPMwE78AkNm1kecbecYqL9j4Vm".to_owned(),
+                vault: "DKXWNzTexESPyfsdAu2aLWCz6pupz37u7syh6FqTroUJDKXWNzTexESPyfsdAu2aLWCz6pupz37u7syh6FqTroUJ".to_owned(),
+                provided_liq_amount: 632831287178,
+                provided_liq_ratio: Some(
+                    0.006328312871780001,
+                ),
+            },
+            quote: SharedTokenMeta {
+                mint_account: None,
+                mint: "So11111111111111111111111111111111111111112".to_owned(),
+                vault: "48444tr6CaL2i8WcY16dMa81S1y6CQhBCRq556ACdCZb48444tr6CaL2i8WcY16dMa81S1y6CQhBCRq556ACdCZb".to_owned(),
+                provided_liq_amount: 79010000000,
+                provided_liq_ratio: None,
+            },
+            signers: vec![
+                "4vn9jGm463jsdVJtss9wQUVXRFu99cs9gtRXCowmZiVL".to_owned(),
+            ],
+            raydium_related: Some(
+                PairMetaRaydium {
+                    lp_mint: "826thAa3anaB2B6w6KYHepAZZgKrQnAEpm1M2fYWpoLG".to_owned(),
+                    lp_tokens_minted_amount: 223605797749,
+                },
+            ),
+            market_id: "EoTVDCVpU4yq7pfxeAYEM4zcuGr3EvTci2Ug2nXSM2kP".to_owned()        
+        };
+        
+        let post = processing::tg::build_post_as_string(test_pair_meta);
+        let bot = Bot::from_env();
+        bot.send_message("@dex_pulse_scanner".to_owned(), post).parse_mode(MarkdownV2).await?;
 
         Ok(())
     }

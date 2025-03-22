@@ -1,4 +1,7 @@
 pub const NATIVE_MINT: &'static str = "So11111111111111111111111111111111111111112";
+pub const USDC_MINT: &'static str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+pub const NATIVE_DECIMALS: u8 = 9;
+pub const USDC_DECIMALS: u8 = 6;
 
 pub const RAYDIUM_LP_V4_PROGRAM_ID: &'static str = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8";
 pub const RAYDIUM_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP: &'static str = "Program 675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8 success";
