@@ -247,7 +247,7 @@ mod test {
         let post = processing::tg::build_post_as_string(test_pair_meta);
         let bot = Bot::from_env();
         bot.send_message("@dex_pulse_scanner".to_owned(), post).parse_mode(MarkdownV2).await?;
-
+        
         Ok(())
     }
 }

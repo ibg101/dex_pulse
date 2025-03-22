@@ -64,11 +64,12 @@ cargo build --release
 3. **Configure the `.env` file**:
 
 - `RUST_LOG` - Specifies the logging level. The available options are:.
-  - `debug` - Logs detailed information for debugging purposes.
-  - `info` - Logs general information about the operation of the bot.
-  - `warn` - Logs warnings about potential issues that might not cause errors.
-  - `error` - Logs errors and critical issues that may halt the bot's operation.
-  - `off` - Disables logging (not recommended for production).
+  - `trace` - Logs the most detailed information, including everything down to fine-grained operations and internal states (useful for deep debugging).
+  - `debug` - Logs detailed information for debugging purposes (useful for development and troubleshooting).
+  - `info` - Logs general information about the operation of the bot (default logging level, good for regular monitoring).
+  - `warn` - Logs warnings about potential issues that might not cause errors but should be noted.
+  - `error` - Logs errors and critical issues that may halt the bot's operation (useful for catching issues that stop the bot from working).
+  - `off` - Disables logging (not recommended for production as it will hide all log messages).
 - `TELOXIDE_TOKEN` - The Telegram bot token, which can be obtained from `@BotFather` on Telegram.
 - `WS_URL_MAINNET` - The WebSocket endpoint URL for Solana's mainnet. This can be obtained from your Solana RPC provider. **DO NOT USE public endpoints!**
 - `HTTP_URL_MAINNET` - The HTTP endpoint URL for Solana's mainnet. This can also be obtained from your Solana RPC provider.
