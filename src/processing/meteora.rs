@@ -1,4 +1,7 @@
-use super::core::get_mut_shared_token_meta;
+use super::core::{
+    get_mut_shared_token_meta,
+    check_necessary_fields_filled
+};
 use crate::{
     utils::parser::token_instruction::{
         TokenInstruction,
@@ -40,8 +43,6 @@ impl Dex {
             .ok_or(Error::ProcessTransaction)?;
         
         for instruction in add_liquidity_instruction.instructions.iter() {
-            if pair_meta.base.mint.len() > 0 && pair_meta.quote.mint.len() > 0 { break; }
-
             let bytes: Vec<u8> = bs58::decode(&instruction.data).into_vec()?;
 
             if let Ok(token_instruction) = TokenInstruction::unpack(&bytes) {
@@ -71,10 +72,7 @@ impl Dex {
             }
         }
 
-        // enough fields? (NOTE, this is just a basic check)
-        if pair_meta.base.mint.len() == 0 
-        || pair_meta.quote.mint.len() == 0 
-        || pair_meta.market_id.len() == 0 { return Err(Error::ProcessTransaction.into()); }
+        check_necessary_fields_filled(&pair_meta)?;
 
         Ok(pair_meta)
     } 

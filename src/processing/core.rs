@@ -127,3 +127,11 @@ pub fn get_mut_shared_token_meta(is_base: bool, pair_meta: &mut PairMeta) -> &mu
         &mut pair_meta.quote
     }
 }
+
+/// NOTE, this is just a basic check.
+pub fn check_necessary_fields_filled(pair_meta: &PairMeta) -> Result<(), Error> {
+    for field in [&pair_meta.base.mint, &pair_meta.quote.mint, &pair_meta.market_id] {
+        if field.len() == 0 { return Err(Error::ProcessTransaction.into()); }
+    }
+    Ok(())
+}
