@@ -64,6 +64,7 @@ impl Dex {
                 if owner != RAYDIUM_LP_V4_PROGRAM_ID {
                     continue;
                 } else {
+                    pair_meta.market_id.truncate(0);
                     pair_meta.market_id.push_str(&account);
                 }
             }
@@ -99,7 +100,7 @@ impl Dex {
         }
 
         check_necessary_fields_filled(&pair_meta)?;
-        
+
         Ok(pair_meta)
     }
 }
