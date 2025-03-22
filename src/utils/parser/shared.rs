@@ -1,7 +1,4 @@
-use crate::types::{
-    error::Error,
-    custom::AccountKeys
-};
+use crate::types::error::Error;
 
 
 pub fn unpack_option_key(key: [u8; 36]) -> Result<Option<String>, Error> {

@@ -44,9 +44,10 @@ mod test {
     //         config.http_url_mainnet.clone(), 
     //         CommitmentLevel::Processed    
     //     )?;
-    //     let raydium_signature: &'static str = "4mGtxTbTmLhhzvjUKuFZV9ufmaApdJcSK3zDTJByfRD2jbB5mfhQP6STmaG7MPZPhp6UjWBB7jNFBTVTgJDkbYR3"; 
+    //     // let raydium_signature: &'static str = "4mGtxTbTmLhhzvjUKuFZV9ufmaApdJcSK3zDTJByfRD2jbB5mfhQP6STmaG7MPZPhp6UjWBB7jNFBTVTgJDkbYR3"; 
     //     // let meteora_signature: &'static str = "LYoBxqpqQzYu19EXxUtAA1HFfqkCzjCJZTEkm4AFShVdjFoD7Duf2HA6wjMAmvcfpG1gU2wuNhjEMXNkbQU5opx";
-    //     let transaction = rpc_client.get_transaction(raydium_signature, CommitmentLevel::Confirmed).await?;
+    //     let meteora_signature: &'static str = "KozQgTGFHgEfN5tBfJE6P9Y3LWEEny6hrepjWhYr6RF4mDBvbzywXPanUAuVB8psmANvFnb466usRtVHfusWhDC";
+    //     let transaction = rpc_client.get_transaction(meteora_signature, CommitmentLevel::Confirmed).await?;
     //     println!("{:#?}", transaction);
     //     // let processed_tx_raw = Dex::Raydium.process_transaction(transaction).await?;
     //     // println!("{:#?}", processed_tx_raw);
@@ -181,4 +182,18 @@ mod test {
 
     //     Ok(())
     // }
+
+    #[test]
+    fn meteora_parse_market_id_from_anchor_cpi_log() -> Result<(), Box<dyn std::error::Error>> {
+        let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oeeV8xJDpYQ8QJHMaN1Yy9xzv4iwVZNbHv2MVPVTcJqLWGQrPzd5kHZDVWCRGK47GjpGFB2nn56tx5FURwCtxsgNV67Tbczw58He4sQHZiQ5WLEbmBZErL7nQkpZh1LZpdMxnj3fKrtGsdpyTsE7iQnEAkDhSqX6N";
+        // let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oee5T9HqsdFuBqY8daxpjQpsFmKdgEW2UMqJt4jedPSksNm774bpoX3Ar7vT4UKJYfyh3WV4y8izmodKLYv7ZvSsQkEeZtkLF7L2JPYSENMLLaf2ozyaG5ZBwbPEPDhqrz7biDbBJFkbjd1QETwh5LRZnfXKTzWai";
+        // let encoded_data: &str = "3drYVtAcBYiKzmNPkzG2oegL4SNcPQMkFbQ1uc7NwfcuVphjkSb6z3aKFkLmi6S8wYAaL2FMSGAvxk1t3YzBsg2qX17jwot3X2Z2YNR5zX1D8F5UvCYLHJG3sSnk9bf4gu4DM1DjtLKB2rMvAQXh7K57UKbAL7ZAc7n3zUbFSJHaf5tm1kDQb";
+        let bytes: Vec<u8> = bs58::decode(encoded_data).into_vec()?;
+
+        println!("size: {}", bytes.len());
+
+        println!("{}", bs58::encode(&bytes[16..48]).into_string());  // lb pair
+
+        Ok(())
+    }
 }

@@ -36,21 +36,22 @@ pub struct PairMetaRaydium {
     pub lp_tokens_minted_amount: u64  // raw
 }
 
-const PUBKEY_LEN: usize = 32;
+const PUBKEY_STRING_LEN: usize = 44;
 
 impl PairMeta {
     pub fn default_preallocated() -> Self {
         Self { 
             base: Self::default_preallocated_shared_meta(), 
-            quote: Self::default_preallocated_shared_meta(), 
+            quote: Self::default_preallocated_shared_meta(),
+            market_id: String::with_capacity(PUBKEY_STRING_LEN), 
             ..Default::default() 
         }        
     }
 
     fn default_preallocated_shared_meta() -> SharedTokenMeta {
         SharedTokenMeta {
-            mint: String::with_capacity(PUBKEY_LEN),
-            vault: String::with_capacity(PUBKEY_LEN),
+            mint: String::with_capacity(PUBKEY_STRING_LEN),
+            vault: String::with_capacity(PUBKEY_STRING_LEN),
             ..Default::default()
         }
     }
@@ -59,7 +60,7 @@ impl PairMeta {
 impl PairMetaRaydium {
     pub fn default_preallocated() -> Self {
         Self {
-            lp_mint: String::with_capacity(PUBKEY_LEN), 
+            lp_mint: String::with_capacity(PUBKEY_STRING_LEN), 
             ..Default::default() 
         }
     }

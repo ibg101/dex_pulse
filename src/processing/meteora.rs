@@ -33,11 +33,8 @@ impl Dex {
         let tx_account_keys: &[String] = &tx_result.transaction.message.account_keys[..];
         let loaded_addresses: Option<&LoadedAddresses> = tx_result.meta.loaded_addresses.as_ref();
         let account_keys: AccountKeys = AccountKeys::new(tx_account_keys, loaded_addresses); 
-        
-        let inner_instructions: &[InnerInstruction] = tx_result.meta.inner_instructions
-            .as_ref()
-            .ok_or(Error::ProcessTransaction)?;
 
+        let inner_instructions: Vec<InnerInstruction> = tx_result.meta.inner_instructions.ok_or(Error::ProcessTransaction)?;
         let add_liquidity_instruction: &InnerInstruction = inner_instructions
             .last()
             .ok_or(Error::ProcessTransaction)?;
@@ -61,16 +58,23 @@ impl Dex {
                     ..
                 } = parsed_instruction {
                     let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.mint.len() == 0, &mut pair_meta);
-                    meta.mint = mint;
-                    meta.vault = destination;
+                    meta.mint.push_str(&mint);  // using preallocated space
+                    meta.vault.push_str(&destination);
                     meta.provided_liq_amount = amount;
                     pair_meta.signers = signers;
+                }
+            } else {
+                // size of anchor cpi log is 132 bytes
+                if bytes.len() == 132 {
+                    pair_meta.market_id.push_str(&bs58::encode(&bytes[16..48]).into_string());
                 }
             }
         }
 
         // enough fields? (NOTE, this is just a basic check)
-        if pair_meta.base.mint.len() == 0 || pair_meta.quote.mint.len() == 0 { return Err(Error::ProcessTransaction.into()); }
+        if pair_meta.base.mint.len() == 0 
+        || pair_meta.quote.mint.len() == 0 
+        || pair_meta.market_id.len() == 0 { return Err(Error::ProcessTransaction.into()); }
 
         Ok(pair_meta)
     } 

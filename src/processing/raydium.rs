@@ -61,7 +61,7 @@ impl Dex {
                 if owner != RAYDIUM_LP_V4_PROGRAM_ID {
                     continue;
                 } else {
-                    pair_meta.market_id = account;
+                    pair_meta.market_id.push_str(&account);
                 }
             }
 
@@ -74,12 +74,12 @@ impl Dex {
                 match parsed_instruction {
                     token_instruction::ParsedInstruction::InitializeAccount { account, mint, .. } => {
                         let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.mint.len() == 0, &mut pair_meta);
-                        meta.mint = mint;
-                        meta.vault = account;
+                        meta.mint.push_str(&mint);
+                        meta.vault.push_str(&account);
                     },
                     token_instruction::ParsedInstruction::Transfer { signers, destination, amount, .. } => {
                         let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.vault == destination, &mut pair_meta);
-                        meta.vault = destination;
+                        meta.vault.push_str(&destination);
                         meta.provided_liq_amount = amount;
                         pair_meta.signers = signers;
                     },
@@ -87,7 +87,7 @@ impl Dex {
                         let raydium: &mut PairMetaRaydium = pair_meta
                             .raydium_related
                             .get_or_insert(PairMetaRaydium::default_preallocated());
-                        raydium.lp_mint = mint;
+                        raydium.lp_mint.push_str(&mint);
                         raydium.lp_tokens_minted_amount = amount;
                     },
                     _ => continue
