@@ -82,3 +82,7 @@ You can run the bot with:
 cargo run --release
 ```
 The bot will start scanning for new liquidity pools and post real-time updates to the configured **Telegram channel**.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
