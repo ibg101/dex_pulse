@@ -75,6 +75,7 @@ impl Dex {
         match self {
             Self::Raydium => self.raydium_lp_creation_event(logs_subscribe, tx).await,
             Self::Meteora => self.meteora_lp_creation_event(logs_subscribe, tx).await,
+            Self::PumpSwap => self.pumpswap_lp_creation_event(logs_subscribe, tx).await
         }
     }
 }

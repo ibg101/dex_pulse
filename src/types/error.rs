@@ -11,6 +11,7 @@ pub enum Error {
     UnpackOptionKey,
     ArrayFromSlice,
     ProcessTransaction,
+    PairMetaMissingFields
 }
 
 impl std::error::Error for Error {}
@@ -31,6 +32,7 @@ impl std::fmt::Display for Error {
             Self::UnpackOptionKey => "Failed to unpack option key!",
             Self::ArrayFromSlice => "Failed to create an array from slice!",
             Self::ProcessTransaction => "Failed to process transaction!",
+            Self::PairMetaMissingFields => "Missing required fields for PairMeta struct!"
         };
 
         f.write_str(msg)

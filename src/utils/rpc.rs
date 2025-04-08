@@ -37,7 +37,7 @@ pub async fn rpc_request_with_retries<T: serde::de::DeserializeOwned>(
 
     for attempt in 0..max_retries {
         match http_client.post(url).json(&json_rpc).send().await {
-            Ok(res) => {
+            Ok(res) => {                
                 if let Ok(r) = res.json::<T>().await {
                     return Ok(r);
                 }

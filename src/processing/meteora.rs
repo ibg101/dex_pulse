@@ -29,7 +29,8 @@ use crate::{
 
 impl Dex {
     /// 1. Attempt to decode `TransferChecked` instructions (for BASE & QUOTE mints)
-    /// 2. Ensure the mint fields in `PairMeta` are populated
+    /// 2. Try to parse `market_id` by knowing exact size of Anchor CPI log struct
+    /// 3. Ensure the necessary fields in `PairMeta` are populated
     pub async fn meteora_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
         let mut pair_meta: PairMeta = PairMeta::default_preallocated();
         let tx_result: TransactionResult = tx.result;

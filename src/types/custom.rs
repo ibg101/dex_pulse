@@ -8,7 +8,8 @@ use crate::utils::parser::account::AccountType;
 #[derive(Debug, Clone, Copy)]
 pub enum Dex {
     Raydium,
-    Meteora
+    Meteora,
+    PumpSwap
 }
 
 // ---- my custom pair meta ----

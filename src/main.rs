@@ -41,15 +41,20 @@ mod test {
     //     bot::config::init_env()?;
     //     let config: bot::config::Config = bot::config::Config::init()?;
     //     let rpc_client: RpcClient = RpcClient::new_with_commitment(
-    //         config.http_url_mainnet.clone(), 
+    //         // lava provider restricted some functionality, 
+    //         // such as doesn't provide inner_instructions data & some bugs appeared on their side related to json encoding
+    //         // config.http_url_mainnet.clone(),  
+    //         "https://api.mainnet-beta.solana.com".to_owned(),
     //         CommitmentLevel::Processed    
     //     )?;
-    //     // let raydium_signature: &'static str = "4mGtxTbTmLhhzvjUKuFZV9ufmaApdJcSK3zDTJByfRD2jbB5mfhQP6STmaG7MPZPhp6UjWBB7jNFBTVTgJDkbYR3"; 
-    //     // let meteora_signature: &'static str = "LYoBxqpqQzYu19EXxUtAA1HFfqkCzjCJZTEkm4AFShVdjFoD7Duf2HA6wjMAmvcfpG1gU2wuNhjEMXNkbQU5opx";
-    //     let meteora_signature: &'static str = "KozQgTGFHgEfN5tBfJE6P9Y3LWEEny6hrepjWhYr6RF4mDBvbzywXPanUAuVB8psmANvFnb466usRtVHfusWhDC";
-    //     let transaction = rpc_client.get_transaction(meteora_signature, CommitmentLevel::Confirmed).await?;
+    //     // let raydium_signature: &'static str = "2R9NKfTTxSSsZ2c59tFcNzZoMPq4rgC364PuruJumG1iLki7pmv7BQLyajT6LGteWP9CUZkgfBAT9iLEkAorYxDo"; 
+    //     // let meteora_signature: &'static str = "487swy1ZX9eNuQPdCasVD1fvWTboQNewowavcat7ejPukcqGkDaw35ApCUpzneQnznGPqAejVtKCKjfpsEvA4WxQ";
+    //     // let meteora_signature: &'static str = "67EUGqosmoQFHPyjaSmQsh8dRUQzqQzVaEfwmhQWZiKsCjxsTKqSojUkUC8Thc2TyyBz4Woq8CvMsAmJwBnneW4F";
+    //     // let pumpswap_signature: &'static str = "S83J71nzAuJ6tF2HE5ena8kJT6kmAwviHaMQdjoeUvu9w5XWEnDZDRutDuugoj8LkLobJpNrHbjxEtw1LzDgiA4";
+    //     let pumpswap_signature: &'static str = "2g66jSg8j6Tgyd9Js2wmR5U56hZpL4mkBpRfMdXoTJDrJHyfsodF38pEAv3CUyBNJubfboSxRotUbxzpvM2JBEif";
+    //     let transaction = rpc_client.get_transaction(pumpswap_signature, CommitmentLevel::Confirmed).await?;
     //     println!("{:#?}", transaction);
-    //     // let processed_tx_raw = Dex::Raydium.process_transaction(transaction).await?;
+    //     // let processed_tx_raw = Dex::Meteora.process_transaction(transaction).await?;
     //     // println!("{:#?}", processed_tx_raw);
 
     //     // let not_mintable_not_freezable: &str = "y7D9BxVeQ5iwwd7yC8R3VsW1prWpsPkcnq63eSupump";
@@ -60,8 +65,8 @@ mod test {
     //     Ok(())
     // }
 
-    // #[test]
-    // fn tx_instruction_parser() -> Result<(), Box<dyn std::error::Error>> {
+    #[test]
+    fn tx_instruction_parser() -> Result<(), Box<dyn std::error::Error>> {
     //     // let encoded_data: &str = "6ekZrwzFbXXm";  // mintto
     //     // let instruction_accounts: Vec<usize> = vec![4, 10, 16];
     //     // let encoded_data: &str = "3DWrJp21szUo";  // transfer
@@ -105,8 +110,64 @@ mod test {
     //     let parsed_i = token_instruction.parse(&account_keys, &instruction_accounts)?;
     //     println!("{:#?}", parsed_i);
 
-    //     Ok(())
-    // }
+
+        // --pumpswap--
+        // ANCHOR CPI LOG
+        // let data = "rLaD5MVJGTSekbeMDJ6HPtvCzxUm9GCBf3DDLoPhXkK6UKFhXRcdSpcvuBoUUuZvfYKE9d6agFVnXVP2sWq3q12zu2xkYSSzjj1X1BQX2gwAiAzQsNZwXkxQrX7feS4gjArGaZ9KJCh88cGTrhKwYuVPZhPDRahSJktBQxQSjRbzxVHAVb4CASZ57LxuEfQ2nS1peHtF7Wu5A2QTFvFXQB2c7Y45v3tVvGcSKoAaPEymnfnnP1WUhe4sVvsRk4nVhzb7g2zd7zcqJaNYdCe2TTe2LpdDJH7FXDig8hsmATzgCsc87qkRYZqXETerXjiLcGX6KnLPPumdGtU5EJwDGV3dMP8AusbwnzMx5qZb63Vha1AjpPjK8ZkVG9gJc4T5X9VjoU5xmVACs6bvsHskXmFzYAjqUrWt8AnHSr";
+        // let decoded_bytes: Vec<u8> = bs58::decode(data).into_vec()?; 
+        // println!("bytes len: {}", decoded_bytes.len());
+
+        let data = "7PDgJJxP9Deo";  // burn
+        // let data = "6VGqp5KosJBrKqsHqEcQpmghJdAt5jzqvZK2c326TVamK";  // initializeaccount3 
+        let decoded_bytes: Vec<u8> = bs58::decode(data).into_vec()?;
+        let token_instruction: TokenInstruction = TokenInstruction::unpack(&decoded_bytes)?;
+        let static_keys: Vec<String> = vec![
+            "999998H51LaVaPCK9TDVHiFv8HJGLFaDrPrkYSQeCSLM",
+            "E1W75quKfhBG7EKnXhTGfEYrsMd7u4KLkaCnVFpM33XE",
+            "2tJrSwhxyqujGDd16Hyh9APHXhJNE6Qo2uatPmvk2Eob",
+            "2LupHit5nuc6Vg57oWRzseNDDp4yP3R1Tyy2mPDv6p1D",
+            "5ENtXSq7N6pGKRS38xcMNFpazhnS3cnbAnnc5TUkh56o",
+            "4TiKCzUtzvcd1BBzB4k7op43s1P8Sc67JFAG9UwL3ib5",
+            "BGNvHv9w7RHLhYBtRpw7d4Rv8m4CtfbkbCmEELPrcRHK",
+            "7FFbg7vH9t3Xto6CdRiWdt8tdYBbBJ5GrdQCXRWRZLEr",
+            "3n4yMk1jVagqvf5NizF1TjXcAhwCSxaNnR7ssQMVAREv",
+            "663B2NrEuevDY5TNrtgGggeDoUM7xBZfA2nKacT2eTc3",
+            "GWMvvvJspDyNfKmyKoc1N1gTCJiKkctuG6v5idRFuscF",
+            "AkfEzSkGHadJhWyhJcicgD9PYMUuDrPY1SD4Gac2BeCh",
+            "6T6oxn3AFkQKVQnjzSynYGRmkNobFSf89nV8mAS5v3iH",
+            "ComputeBudget111111111111111111111111111111",
+            "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+            "hdsUgquX4iXf2Faqx9nzExdbVyCu62VZMXNNYrSpump",
+            "BBBBBBZy6FZkuzYrCvYh4DdwGZZMXFeKHZXXMq9vUCHN",
+            "So11111111111111111111111111111111111111112",                
+        ].into_iter().map(|i| i.to_owned()).collect();
+        let loaded_addresses: LoadedAddresses = LoadedAddresses {
+            writable: vec![
+                "62qc2CNXwrYqQScmEdiZFFAnJR262PxWEuNQtxfafNgV",
+                "39azUYFWPz3VHgKCf3VChUwbpURdCHRxjWVowf5jUJjg",
+                "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw",
+                "94qWNrtmfn42h3ZjUZwWvK1MEo9uVmmrBPd2hpNjYDjb",
+            ].into_iter().map(|i| i.to_owned()).collect(),
+            readonly: vec![
+                "11111111111111111111111111111111",
+                "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf",
+                "SysvarRent111111111111111111111111111111111",
+                "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
+                "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+                "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+                "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+                "GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR",
+            ].into_iter().map(|i| i.to_owned()).collect()
+        };
+        let account_keys = AccountKeys::new(&static_keys, Some(&loaded_addresses));
+        let instruction_accounts: Vec<usize> = vec![9, 8, 5];  // burn
+        // let instruction_accounts: Vec<usize> = vec![1, 15];  // initializeaccount3
+        let parsed_i = token_instruction.parse(&account_keys, &instruction_accounts)?;
+        println!("{:#?}", parsed_i);
+
+        Ok(())
+    }
 
     // #[test]
     // fn testing_account_keys() -> () {
@@ -197,57 +258,57 @@ mod test {
     //     Ok(())
     // }
 
-    #[tokio::test]
-    async fn build_post() -> Result<(), Box<dyn std::error::Error>> {
-        use teloxide::{
-            Bot,
-            prelude::Requester, 
-            payloads::SendMessageSetters, 
-            types::ParseMode::MarkdownV2, 
-        };
+    // #[tokio::test]
+    // async fn build_post() -> Result<(), Box<dyn std::error::Error>> {
+    //     use teloxide::{
+    //         Bot,
+    //         prelude::Requester, 
+    //         payloads::SendMessageSetters, 
+    //         types::ParseMode::MarkdownV2, 
+    //     };
 
-        bot::config::init_env()?;
-        pretty_env_logger::init();
+    //     bot::config::init_env()?;
+    //     pretty_env_logger::init();
 
-        let test_pair_meta: PairMeta = PairMeta {
-            base: SharedTokenMeta {
-                mint_account: Some(AccountType::Mint {
-                    mint_authority: None,
-                    supply: 10000000000000000,
-                    decimals: 6,
-                    is_initialized: true,
-                    freeze_authority: None,
-                }),
-                mint: "BiFFcvhZtyjYYag5mERPMwE78AkNm1kecbecYqL9j4Vm".to_owned(),
-                vault: "DKXWNzTexESPyfsdAu2aLWCz6pupz37u7syh6FqTroUJDKXWNzTexESPyfsdAu2aLWCz6pupz37u7syh6FqTroUJ".to_owned(),
-                provided_liq_amount: 632831287178,
-                provided_liq_ratio: Some(
-                    0.006328312871780001,
-                ),
-            },
-            quote: SharedTokenMeta {
-                mint_account: None,
-                mint: "So11111111111111111111111111111111111111112".to_owned(),
-                vault: "48444tr6CaL2i8WcY16dMa81S1y6CQhBCRq556ACdCZb48444tr6CaL2i8WcY16dMa81S1y6CQhBCRq556ACdCZb".to_owned(),
-                provided_liq_amount: 79010000000,
-                provided_liq_ratio: None,
-            },
-            signers: vec![
-                "4vn9jGm463jsdVJtss9wQUVXRFu99cs9gtRXCowmZiVL".to_owned(),
-            ],
-            raydium_related: Some(
-                PairMetaRaydium {
-                    lp_mint: "826thAa3anaB2B6w6KYHepAZZgKrQnAEpm1M2fYWpoLG".to_owned(),
-                    lp_tokens_minted_amount: 223605797749,
-                },
-            ),
-            market_id: "EoTVDCVpU4yq7pfxeAYEM4zcuGr3EvTci2Ug2nXSM2kP".to_owned()        
-        };
+    //     let test_pair_meta: PairMeta = PairMeta {
+    //         base: SharedTokenMeta {
+    //             mint_account: Some(AccountType::Mint {
+    //                 mint_authority: None,
+    //                 supply: 10000000000000000,
+    //                 decimals: 6,
+    //                 is_initialized: true,
+    //                 freeze_authority: None,
+    //             }),
+    //             mint: "BiFFcvhZtyjYYag5mERPMwE78AkNm1kecbecYqL9j4Vm".to_owned(),
+    //             vault: "DKXWNzTexESPyfsdAu2aLWCz6pupz37u7syh6FqTroUJDKXWNzTexESPyfsdAu2aLWCz6pupz37u7syh6FqTroUJ".to_owned(),
+    //             provided_liq_amount: 632831287178,
+    //             provided_liq_ratio: Some(
+    //                 0.006328312871780001,
+    //             ),
+    //         },
+    //         quote: SharedTokenMeta {
+    //             mint_account: None,
+    //             mint: "So11111111111111111111111111111111111111112".to_owned(),
+    //             vault: "48444tr6CaL2i8WcY16dMa81S1y6CQhBCRq556ACdCZb48444tr6CaL2i8WcY16dMa81S1y6CQhBCRq556ACdCZb".to_owned(),
+    //             provided_liq_amount: 79010000000,
+    //             provided_liq_ratio: None,
+    //         },
+    //         signers: vec![
+    //             "4vn9jGm463jsdVJtss9wQUVXRFu99cs9gtRXCowmZiVL".to_owned(),
+    //         ],
+    //         raydium_related: Some(
+    //             PairMetaRaydium {
+    //                 lp_mint: "826thAa3anaB2B6w6KYHepAZZgKrQnAEpm1M2fYWpoLG".to_owned(),
+    //                 lp_tokens_minted_amount: 223605797749,
+    //             },
+    //         ),
+    //         market_id: "EoTVDCVpU4yq7pfxeAYEM4zcuGr3EvTci2Ug2nXSM2kP".to_owned()        
+    //     };
         
-        let post = processing::tg::build_post_as_string(test_pair_meta);
-        let bot = Bot::from_env();
-        bot.send_message("@dex_pulse_scanner".to_owned(), post).parse_mode(MarkdownV2).await?;
+    //     let post = processing::tg::build_post_as_string(test_pair_meta);
+    //     let bot = Bot::from_env();
+    //     bot.send_message("@dex_pulse_scanner".to_owned(), post).parse_mode(MarkdownV2).await?;
         
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }

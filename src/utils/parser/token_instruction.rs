@@ -1,4 +1,4 @@
-use super::shared::{self};
+use super::shared;
 use crate::types::{
     error::Error,
     custom::{AccountKeys, Unpack, Parser}, 
@@ -6,12 +6,22 @@ use crate::types::{
 
 
 /// ### Mini Custom parser for spl-token-2022 instruction.
+///
+/// Note: Some parts of the code are commented out intentionally.
+/// They are implemented and working, but currently disabled to reduce runtime overhead.
+/// These parts may be re-enabled in the future if needed.
 /// 
 /// https://docs.rs/spl-token-2022/7.0.0/src/spl_token_2022/instruction.rs.html#724-864
 #[derive(Debug)]
 pub enum TokenInstruction {
     InitializeAccount,
+    // InitializeAccount3 {
+    //     owner: String
+    // },
     MintTo {
+        amount: u64
+    },
+    Burn {
         amount: u64
     },
     Transfer {
@@ -31,8 +41,19 @@ pub enum ParsedInstruction {
         owner: String,
         rent_sysvar: String
     },
+    // InitializeAccount3 {
+    //     account: String,
+    //     mint: String,
+    //     owner: String, 
+    // },
     MintTo {
         mint_signers: Vec<String>,
+        mint: String,
+        account: String,
+        amount: u64
+    },
+    Burn {
+        signers: Vec<String>,
         mint: String,
         account: String,
         amount: u64
@@ -57,8 +78,9 @@ impl ParsedInstruction {
     pub fn parse_signers(mut self, last_nonsigner_index: usize, account_keys: &AccountKeys, instruction_accounts: &[usize]) -> Result<Self, Error> {
         let signers: &mut Vec<String> = match &mut self {
             Self::MintTo { mint_signers, .. } => mint_signers,
-            Self::Transfer { signers, .. } => signers,
-            Self::TransferChecked { signers, .. } => signers,
+            Self::Burn { signers, .. } 
+            | Self::Transfer { signers, .. } 
+            | Self::TransferChecked { signers, .. } => signers,
             _ => return Err(Error::ParseInstruction)
         };
 
@@ -81,11 +103,12 @@ impl Unpack for TokenInstruction {
 
         Ok(match instruction_type {
             1 => Self::InitializeAccount,
-            3 | 7 => {
+            3 | 7 | 8 => {
                 let (amount, _) = Self::unpack_u64(rest)?;
                 match instruction_type {                    
                     3 => Self::Transfer { amount },
                     7 => Self::MintTo { amount },
+                    8 => Self::Burn { amount },
                     _ => unreachable!()
                 }
             },
@@ -93,6 +116,10 @@ impl Unpack for TokenInstruction {
                 let (amount, decimals, _) = Self::unpack_amount_and_decimals(rest)?;
                 Self::TransferChecked { amount, decimals }
             },
+            // 18 => {
+            //     let (owner, _) =  Self::unpack_key(rest)?;
+            //     Self::InitializeAccount3 { owner }
+            // },
             _ => return Err(Error::InvalidInstruction)
         })
     }
@@ -112,6 +139,14 @@ impl Parser<ParsedInstruction> for TokenInstruction {
                         rent_sysvar: account_keys[instruction_accounts[3]].clone() 
                     }
                 },
+                // Self::InitializeAccount3 { owner } => {
+                //     shared::validate_instruction_accounts_len(instruction_accounts, 2)?;
+                //     ParsedInstruction::InitializeAccount3 { 
+                //         account: account_keys[instruction_accounts[0]].clone(), 
+                //         mint: account_keys[instruction_accounts[1]].clone(), 
+                //         owner 
+                //     }
+                // },
                 Self::MintTo { amount } => {
                     shared::validate_instruction_accounts_len(instruction_accounts, 3)?;
                 
@@ -119,6 +154,18 @@ impl Parser<ParsedInstruction> for TokenInstruction {
                         mint_signers: vec![], 
                         mint: account_keys[instruction_accounts[0]].clone(), 
                         account: account_keys[instruction_accounts[1]].clone(), 
+                        amount
+                    };
+
+                    unfinished_instruction.parse_signers(2, account_keys, instruction_accounts)?
+                },
+                Self::Burn { amount } => {
+                    shared::validate_instruction_accounts_len(instruction_accounts, 3)?;
+
+                    let unfinished_instruction: ParsedInstruction = ParsedInstruction::Burn { 
+                        signers: vec![], 
+                        account: account_keys[instruction_accounts[0]].clone(), 
+                        mint: account_keys[instruction_accounts[1]].clone(), 
                         amount
                     };
 
@@ -157,6 +204,15 @@ impl Parser<ParsedInstruction> for TokenInstruction {
 }
 
 impl TokenInstruction {
+    // fn unpack_key(data: &[u8]) -> Result<(String, &[u8]), Error> {
+    //     let key: String = data
+    //         .get(..32)
+    //         .map(|slice| bs58::encode(slice).into_string())
+    //         .ok_or(Error::InvalidInstruction)?;
+
+    //     Ok((key, &data[32..]))
+    // }
+
     fn unpack_u64(data: &[u8]) -> Result<(u64, &[u8]), Error> {
         let amount: u64 = data
             .get(..8)
