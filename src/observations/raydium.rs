@@ -27,9 +27,11 @@ impl Dex {
         let mut is_successfully_created: bool = false;  // not 100%, so check tx.err in order to ensure lp's creation status
     
         for log in logs {
-            if log.contains(RAYDIUM_INSTRUCTION_CREATE_NEW_LP) {
+            if !is_creation_instruction && log.find(RAYDIUM_INSTRUCTION_CREATE_NEW_LP).is_some() {
                 is_creation_instruction = true;
-            } else if log.contains(RAYDIUM_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP) {
+            }
+
+            if !is_successfully_created && log.find(RAYDIUM_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP).is_some() {
                 is_successfully_created = true;
             }
 
@@ -37,10 +39,7 @@ impl Dex {
         }
     
         if is_creation_instruction && is_successfully_created {
-            let signature: String = logs_value.signature.to_owned();
-            if let Err(e) = tx.send((signature, *self)).await {
-                log::error!("Failed to extend signatures channel! {e}");
-            }
+            self.push_signature_to_channel(logs_value.signature, tx).await;
         }
     }
 }

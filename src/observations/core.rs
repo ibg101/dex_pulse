@@ -8,7 +8,8 @@ use crate::{
     },
     constants::{
         RAYDIUM_LP_V4_PROGRAM_ID,
-        METEORA_DLMM_PROGRAM_ID
+        METEORA_DLMM_PROGRAM_ID,
+        PUMPSWAP_AMM_PROGRAM_ID
     }
 };
 
@@ -24,9 +25,11 @@ pub async fn handle_all_logs_subscriptions(
 ) -> () {
     let raydium_req_json_rpc: serde_json::Value = craft_logs_subscribe_json_rpc(RAYDIUM_LP_V4_PROGRAM_ID, None);
     let meteora_req_json_rpc: serde_json::Value = craft_logs_subscribe_json_rpc(METEORA_DLMM_PROGRAM_ID, None);
-    let subscriptions_arr: [(serde_json::Value, Dex); 2] = [
+    let pumpswap_req_json_rpc: serde_json::Value = craft_logs_subscribe_json_rpc(PUMPSWAP_AMM_PROGRAM_ID, None);
+    let subscriptions_arr: [(serde_json::Value, Dex); 3] = [
         (raydium_req_json_rpc, Dex::Raydium),
-        (meteora_req_json_rpc, Dex::Meteora)
+        (meteora_req_json_rpc, Dex::Meteora),
+        (pumpswap_req_json_rpc, Dex::PumpSwap)
     ];
 
     for (req_json_rpc, dex) in subscriptions_arr {
@@ -76,6 +79,12 @@ impl Dex {
             Self::Raydium => self.raydium_lp_creation_event(logs_subscribe, tx).await,
             Self::Meteora => self.meteora_lp_creation_event(logs_subscribe, tx).await,
             Self::PumpSwap => self.pumpswap_lp_creation_event(logs_subscribe, tx).await
+        }
+    }
+
+    pub async fn push_signature_to_channel(&self, signature: &str, tx: &mpsc::Sender<(String, Dex)>) -> () {
+        if let Err(e) = tx.send((signature.to_owned(), *self)).await {
+            log::error!("Failed to extend signatures channel! {e}");
         }
     }
 }

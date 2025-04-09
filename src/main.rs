@@ -66,6 +66,14 @@ mod test {
     // }
 
     #[test]
+    fn testing_improvements() -> Result<(), Box<dyn std::error::Error>> {
+        let log_str: &str = "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA invoke [3]";
+        let id: &str = "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA";  
+        
+        Ok(())
+    }
+
+    #[test]
     fn tx_instruction_parser() -> Result<(), Box<dyn std::error::Error>> {
     //     // let encoded_data: &str = "6ekZrwzFbXXm";  // mintto
     //     // let instruction_accounts: Vec<usize> = vec![4, 10, 16];
@@ -118,7 +126,8 @@ mod test {
         // println!("bytes len: {}", decoded_bytes.len());
 
         let data = "7PDgJJxP9Deo";  // burn
-        // let data = "6VGqp5KosJBrKqsHqEcQpmghJdAt5jzqvZK2c326TVamK";  // initializeaccount3 
+        // let data = "6VGqp5KosJBrKqsHqEcQpmghJdAt5jzqvZK2c326TVamK";  // initializeaccount3
+        // let data = "6eQA6kJksZAP";  // token 2022 mintto 
         let decoded_bytes: Vec<u8> = bs58::decode(data).into_vec()?;
         let token_instruction: TokenInstruction = TokenInstruction::unpack(&decoded_bytes)?;
         let static_keys: Vec<String> = vec![
@@ -163,6 +172,7 @@ mod test {
         let account_keys = AccountKeys::new(&static_keys, Some(&loaded_addresses));
         let instruction_accounts: Vec<usize> = vec![9, 8, 5];  // burn
         // let instruction_accounts: Vec<usize> = vec![1, 15];  // initializeaccount3
+        // let instruction_accounts: Vec<usize> = vec![8, 9, 4];  // token 2022 mintto
         let parsed_i = token_instruction.parse(&account_keys, &instruction_accounts)?;
         println!("{:#?}", parsed_i);
 

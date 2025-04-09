@@ -29,22 +29,23 @@ impl Dex {
         let mut is_successfully_created: bool = false;  // not 100%, so check tx.err in order to ensure lp's creation status
     
         for log in logs {
-            if log.contains(METEORA_INSTRUCTION_INITIALIZE_POSITION) {
+            if !is_init_pos_instruction && log.find(METEORA_INSTRUCTION_INITIALIZE_POSITION).is_some() {
                 is_init_pos_instruction = true;
-            } else if log.contains(METEORA_INSTRUCTION_INITIALIZE_BIN_ARRAY) {
+            }
+
+            if times_bin_array_was_init != 2 && log.find(METEORA_INSTRUCTION_INITIALIZE_BIN_ARRAY).is_some() {
                 times_bin_array_was_init += 1;
-            } else {
-                is_successfully_created |= log.contains(METEORA_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP);
+            }
+
+            if !is_successfully_created && log.find(METEORA_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP).is_some() {
+                is_successfully_created = true;
             }
             
             if is_init_pos_instruction && times_bin_array_was_init == 2 && is_successfully_created { break; }
         }
     
         if is_init_pos_instruction && times_bin_array_was_init == 2 && is_successfully_created {
-            let signature: String = logs_value.signature.to_owned();
-            if let Err(e) = tx.send((signature, *self)).await {
-                log::error!("Failed to extend signatures channel! {e}");
-            }
+            self.push_signature_to_channel(logs_value.signature, tx).await;
         }
     }
 }

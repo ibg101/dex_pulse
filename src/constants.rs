@@ -11,3 +11,8 @@ pub const METEORA_DLMM_PROGRAM_ID: &'static str = "LBUZKhRxPF3XUpBCjp4YzTKgLccjZ
 pub const METEORA_INSTRUCTION_SUCCESSFUL_CREATION_NEW_LP: &'static str = "Program LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo success"; 
 pub const METEORA_INSTRUCTION_INITIALIZE_POSITION: &'static str = "InitializePosition";
 pub const METEORA_INSTRUCTION_INITIALIZE_BIN_ARRAY: &'static str = "InitializeBinArray";
+
+pub const PUMPSWAP_AMM_PROGRAM_ID: &'static str = "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA";
+// Although `initializeMint2` can also be used, `CreatePool` appears earlier in the logs array,
+// allowing to terminate the loop sooner and improve performance
+pub const PUMPSWAP_INSTRUCTION_CREATE_NEW_LP: &'static str = "CreatePool";

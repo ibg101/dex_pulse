@@ -14,6 +14,7 @@ use crate::types::{
 
 impl Dex {
     pub async fn pumpswap_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
+        println!("CAUGHT PUMPSWAP: {tx:#?}");
         todo!()
     }
 }
