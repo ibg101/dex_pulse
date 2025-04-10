@@ -23,11 +23,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod test {
     #![allow(unused_imports, dead_code)]
-    use crate::types::custom::{PairMeta, Parser, SharedTokenMeta, PairMetaRaydium, Unpack};
+    use crate::types::custom::{PairMeta, Parser, SharedTokenMeta, LPTokenMeta, Unpack};
 
     use super::*;
     use rpc::client::RpcClient;
-    use types::{custom::{self, Dex, AccountKeys}, rpc::{CommitmentLevel, LoadedAddresses}};
+    use types::{error, custom::{self, Dex, AccountKeys}, rpc::{CommitmentLevel, LoadedAddresses}};
     use utils::parser::{
         token_instruction::TokenInstruction,
         system_instruction::SystemInstruction,
@@ -36,45 +36,59 @@ mod test {
     use futures_util::Future;
 
 
-    // #[tokio::test]
-    // async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {        
-    //     bot::config::init_env()?;
-    //     let config: bot::config::Config = bot::config::Config::init()?;
-    //     let rpc_client: RpcClient = RpcClient::new_with_commitment(
-    //         // lava provider restricted some functionality, 
-    //         // such as doesn't provide inner_instructions data & some bugs appeared on their side related to json encoding
-    //         // config.http_url_mainnet.clone(),  
-    //         "https://api.mainnet-beta.solana.com".to_owned(),
-    //         CommitmentLevel::Processed    
-    //     )?;
-    //     // let raydium_signature: &'static str = "2R9NKfTTxSSsZ2c59tFcNzZoMPq4rgC364PuruJumG1iLki7pmv7BQLyajT6LGteWP9CUZkgfBAT9iLEkAorYxDo"; 
-    //     // let meteora_signature: &'static str = "487swy1ZX9eNuQPdCasVD1fvWTboQNewowavcat7ejPukcqGkDaw35ApCUpzneQnznGPqAejVtKCKjfpsEvA4WxQ";
-    //     // let meteora_signature: &'static str = "67EUGqosmoQFHPyjaSmQsh8dRUQzqQzVaEfwmhQWZiKsCjxsTKqSojUkUC8Thc2TyyBz4Woq8CvMsAmJwBnneW4F";
-    //     // let pumpswap_signature: &'static str = "S83J71nzAuJ6tF2HE5ena8kJT6kmAwviHaMQdjoeUvu9w5XWEnDZDRutDuugoj8LkLobJpNrHbjxEtw1LzDgiA4";
-    //     let pumpswap_signature: &'static str = "2g66jSg8j6Tgyd9Js2wmR5U56hZpL4mkBpRfMdXoTJDrJHyfsodF38pEAv3CUyBNJubfboSxRotUbxzpvM2JBEif";
-    //     let transaction = rpc_client.get_transaction(pumpswap_signature, CommitmentLevel::Confirmed).await?;
-    //     println!("{:#?}", transaction);
-    //     // let processed_tx_raw = Dex::Meteora.process_transaction(transaction).await?;
-    //     // println!("{:#?}", processed_tx_raw);
+    #[tokio::test]
+    async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {        
+        bot::config::init_env()?;
+        let config: bot::config::Config = bot::config::Config::init()?;
+        let rpc_client: RpcClient = RpcClient::new_with_commitment(
+            // lava provider restricted some functionality, 
+            // such as doesn't provide inner_instructions data & some bugs appeared on their side related to json encoding
+            // config.http_url_mainnet.clone(),  
+            "https://api.mainnet-beta.solana.com".to_owned(),
+            CommitmentLevel::Processed    
+        )?;
+        // let raydium_signature: &'static str = "2R9NKfTTxSSsZ2c59tFcNzZoMPq4rgC364PuruJumG1iLki7pmv7BQLyajT6LGteWP9CUZkgfBAT9iLEkAorYxDo"; 
+        // let meteora_signature: &'static str = "487swy1ZX9eNuQPdCasVD1fvWTboQNewowavcat7ejPukcqGkDaw35ApCUpzneQnznGPqAejVtKCKjfpsEvA4WxQ";
+        // let meteora_signature: &'static str = "67EUGqosmoQFHPyjaSmQsh8dRUQzqQzVaEfwmhQWZiKsCjxsTKqSojUkUC8Thc2TyyBz4Woq8CvMsAmJwBnneW4F";
+        let pumpswap_signature: &'static str = "2g66jSg8j6Tgyd9Js2wmR5U56hZpL4mkBpRfMdXoTJDrJHyfsodF38pEAv3CUyBNJubfboSxRotUbxzpvM2JBEif";
+        // let pumpswap_signature: &'static str = "4DSjpA5wVoYiK8w47KoffJKZi25nuVXJfb85EjKn9Fd7iGDTrat5as7vijjBmhLYg8EtohDhiD3uBy2qaDcb35WV";
+        let transaction = rpc_client.get_transaction(pumpswap_signature, CommitmentLevel::Confirmed).await?;
+        // println!("{:#?}", transaction);
+        let processed_tx_raw = Dex::PumpSwap.process_transaction(transaction).await?;
+        println!("{:#?}", processed_tx_raw);
 
-    //     // let not_mintable_not_freezable: &str = "y7D9BxVeQ5iwwd7yC8R3VsW1prWpsPkcnq63eSupump";
-    //     // let mintable_freezable: &str = "4CUAn6CgkcirqTQ9nmpcFtYNaDT3vgWTCZjPL7Tp7Eei";
-    //     // let account_info = rpc_client.get_account_info("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v").await?;
-    //     // println!("account info: {:#?}", account_info);
+        // let not_mintable_not_freezable: &str = "y7D9BxVeQ5iwwd7yC8R3VsW1prWpsPkcnq63eSupump";
+        // let mintable_freezable: &str = "4CUAn6CgkcirqTQ9nmpcFtYNaDT3vgWTCZjPL7Tp7Eei";
+        // let account_info = rpc_client.get_account_info("hdsUgquX4iXf2Faqx9nzExdbVyCu62VZMXNNYrSpump").await?;
+        // println!("account info: {:#?}", account_info);
+
+        Ok(())
+    }
+
+    // #[test]
+    // fn parse_from_raw_bytes_slice() -> Result<(), Box<dyn std::error::Error>> {
+    //     let data = "rLaD5MVJGTSekbeMDJ6HPt5nvuHSPtLvwkvagDoeu4iossn61mgzs2ifSeRk5XbhRLaXVM9d1ZUnXdWEq1BHB8BnH49ezrdw6cnaYMyKxQ4L7o2LY1wuVRxVsUpEWJh6y4FsdwCb2dnhKTvYTgUMWTXv5KYnB9aayYDCQYPhwsfirfhTdxijzD9R33rcx5u5Quf9aaFV8gkAaZ3Shs4tTak58AT2VKdNNa6zm8Wba6BwoHhj7LaVuxZU7G1zNkiqMhZYTEYJPQxMvg5ogdGbvofxr7G6xrr14P2ecCKcHcAovMETBRq1WMyN7DuN6c15p1jGPfKWYyAHTiDfBbFAHMX9AwqpmdeVkxrGkHAAktRZDc2ZeGefV6PZvCGUqqTsmDNdJZV7Up9syFf5R95SE8xgkPzBkBWZ6EFfrS";
+    //     // let data = "rLaD5MVJGTSekbeMDJ6HPtMevyYBuFn4aoy9n3DJMAggCWiUSxhxynVsazyJ5KjeZ5C2r1RtTBhLXMeEwqaeAJeTJwcmejQHSTzJ22zS4hLjru5BtULuAKe28t3SjscvboVVYjAzpD5tVdEBpG6VpREWeaik6V6WG6bgKAbgNai5wxj9yTcy97i2eNKJ7xZykXURhD3EG66Th3HFo9u7CVM7oftC1nNLAVEpzdXMqTgxfLynHK1PUKpLCdirS4BqKkfnbz4uAUm6AkZ9fApQgNBxdohG1XV1HJMR4XS56vLSPsqjuuU7ZxJs1bka836ubrHtfyG22DWc7dEp9azCUgZCmvQZz2DWgv1SCERUH7CnZhwRv2DrvbKC2CPyinqmhNrgENkYuhRVbu5KezBearBfp5u5Wwb9Z4uD8i";
+    //     let bytes: Vec<u8> = bs58::decode(data).into_vec()?;
+
+    //     let dev_key_encoded: &str = "CbVJyp4R9NQwRJKjpyp1QQ2AYZeuMmUjjTP2KHB4Sa7a";
+    //     let dev_key_bytes: Vec<u8> = bs58::decode(dev_key_encoded).into_vec()?;
+
+    //     // for (i, el) in bytes.iter().enumerate() {
+    //     //     if el == &dev_key_bytes[2] {
+    //     //         println!("index: {} - value: {}", i, el);
+    //     //     }
+    //     // }
+
+    //     println!("is equal: {:?}", &bytes[26..58] == dev_key_bytes);
+
+    //     println!("{}", bs58::encode(&bytes[26..58]).into_string());
 
     //     Ok(())
     // }
 
-    #[test]
-    fn testing_improvements() -> Result<(), Box<dyn std::error::Error>> {
-        let log_str: &str = "Program pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA invoke [3]";
-        let id: &str = "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA";  
-        
-        Ok(())
-    }
-
-    #[test]
-    fn tx_instruction_parser() -> Result<(), Box<dyn std::error::Error>> {
+    // #[test]
+    // fn tx_instruction_parser() -> Result<(), Box<dyn std::error::Error>> {
     //     // let encoded_data: &str = "6ekZrwzFbXXm";  // mintto
     //     // let instruction_accounts: Vec<usize> = vec![4, 10, 16];
     //     // let encoded_data: &str = "3DWrJp21szUo";  // transfer
@@ -125,59 +139,59 @@ mod test {
         // let decoded_bytes: Vec<u8> = bs58::decode(data).into_vec()?; 
         // println!("bytes len: {}", decoded_bytes.len());
 
-        let data = "7PDgJJxP9Deo";  // burn
-        // let data = "6VGqp5KosJBrKqsHqEcQpmghJdAt5jzqvZK2c326TVamK";  // initializeaccount3
-        // let data = "6eQA6kJksZAP";  // token 2022 mintto 
-        let decoded_bytes: Vec<u8> = bs58::decode(data).into_vec()?;
-        let token_instruction: TokenInstruction = TokenInstruction::unpack(&decoded_bytes)?;
-        let static_keys: Vec<String> = vec![
-            "999998H51LaVaPCK9TDVHiFv8HJGLFaDrPrkYSQeCSLM",
-            "E1W75quKfhBG7EKnXhTGfEYrsMd7u4KLkaCnVFpM33XE",
-            "2tJrSwhxyqujGDd16Hyh9APHXhJNE6Qo2uatPmvk2Eob",
-            "2LupHit5nuc6Vg57oWRzseNDDp4yP3R1Tyy2mPDv6p1D",
-            "5ENtXSq7N6pGKRS38xcMNFpazhnS3cnbAnnc5TUkh56o",
-            "4TiKCzUtzvcd1BBzB4k7op43s1P8Sc67JFAG9UwL3ib5",
-            "BGNvHv9w7RHLhYBtRpw7d4Rv8m4CtfbkbCmEELPrcRHK",
-            "7FFbg7vH9t3Xto6CdRiWdt8tdYBbBJ5GrdQCXRWRZLEr",
-            "3n4yMk1jVagqvf5NizF1TjXcAhwCSxaNnR7ssQMVAREv",
-            "663B2NrEuevDY5TNrtgGggeDoUM7xBZfA2nKacT2eTc3",
-            "GWMvvvJspDyNfKmyKoc1N1gTCJiKkctuG6v5idRFuscF",
-            "AkfEzSkGHadJhWyhJcicgD9PYMUuDrPY1SD4Gac2BeCh",
-            "6T6oxn3AFkQKVQnjzSynYGRmkNobFSf89nV8mAS5v3iH",
-            "ComputeBudget111111111111111111111111111111",
-            "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
-            "hdsUgquX4iXf2Faqx9nzExdbVyCu62VZMXNNYrSpump",
-            "BBBBBBZy6FZkuzYrCvYh4DdwGZZMXFeKHZXXMq9vUCHN",
-            "So11111111111111111111111111111111111111112",                
-        ].into_iter().map(|i| i.to_owned()).collect();
-        let loaded_addresses: LoadedAddresses = LoadedAddresses {
-            writable: vec![
-                "62qc2CNXwrYqQScmEdiZFFAnJR262PxWEuNQtxfafNgV",
-                "39azUYFWPz3VHgKCf3VChUwbpURdCHRxjWVowf5jUJjg",
-                "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw",
-                "94qWNrtmfn42h3ZjUZwWvK1MEo9uVmmrBPd2hpNjYDjb",
-            ].into_iter().map(|i| i.to_owned()).collect(),
-            readonly: vec![
-                "11111111111111111111111111111111",
-                "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
-                "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf",
-                "SysvarRent111111111111111111111111111111111",
-                "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
-                "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
-                "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
-                "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
-                "GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR",
-            ].into_iter().map(|i| i.to_owned()).collect()
-        };
-        let account_keys = AccountKeys::new(&static_keys, Some(&loaded_addresses));
-        let instruction_accounts: Vec<usize> = vec![9, 8, 5];  // burn
-        // let instruction_accounts: Vec<usize> = vec![1, 15];  // initializeaccount3
-        // let instruction_accounts: Vec<usize> = vec![8, 9, 4];  // token 2022 mintto
-        let parsed_i = token_instruction.parse(&account_keys, &instruction_accounts)?;
-        println!("{:#?}", parsed_i);
+    //     let data = "7PDgJJxP9Deo";  // burn
+    //     // let data = "6VGqp5KosJBrKqsHqEcQpmghJdAt5jzqvZK2c326TVamK";  // initializeaccount3
+    //     // let data = "6eQA6kJksZAP";  // token 2022 mintto 
+    //     let decoded_bytes: Vec<u8> = bs58::decode(data).into_vec()?;
+    //     let token_instruction: TokenInstruction = TokenInstruction::unpack(&decoded_bytes)?;
+    //     let static_keys: Vec<String> = vec![
+    //         "999998H51LaVaPCK9TDVHiFv8HJGLFaDrPrkYSQeCSLM",
+    //         "E1W75quKfhBG7EKnXhTGfEYrsMd7u4KLkaCnVFpM33XE",
+    //         "2tJrSwhxyqujGDd16Hyh9APHXhJNE6Qo2uatPmvk2Eob",
+    //         "2LupHit5nuc6Vg57oWRzseNDDp4yP3R1Tyy2mPDv6p1D",
+    //         "5ENtXSq7N6pGKRS38xcMNFpazhnS3cnbAnnc5TUkh56o",
+    //         "4TiKCzUtzvcd1BBzB4k7op43s1P8Sc67JFAG9UwL3ib5",
+    //         "BGNvHv9w7RHLhYBtRpw7d4Rv8m4CtfbkbCmEELPrcRHK",
+    //         "7FFbg7vH9t3Xto6CdRiWdt8tdYBbBJ5GrdQCXRWRZLEr",
+    //         "3n4yMk1jVagqvf5NizF1TjXcAhwCSxaNnR7ssQMVAREv",
+    //         "663B2NrEuevDY5TNrtgGggeDoUM7xBZfA2nKacT2eTc3",
+    //         "GWMvvvJspDyNfKmyKoc1N1gTCJiKkctuG6v5idRFuscF",
+    //         "AkfEzSkGHadJhWyhJcicgD9PYMUuDrPY1SD4Gac2BeCh",
+    //         "6T6oxn3AFkQKVQnjzSynYGRmkNobFSf89nV8mAS5v3iH",
+    //         "ComputeBudget111111111111111111111111111111",
+    //         "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+    //         "hdsUgquX4iXf2Faqx9nzExdbVyCu62VZMXNNYrSpump",
+    //         "BBBBBBZy6FZkuzYrCvYh4DdwGZZMXFeKHZXXMq9vUCHN",
+    //         "So11111111111111111111111111111111111111112",                
+    //     ].into_iter().map(|i| i.to_owned()).collect();
+    //     let loaded_addresses: LoadedAddresses = LoadedAddresses {
+    //         writable: vec![
+    //             "62qc2CNXwrYqQScmEdiZFFAnJR262PxWEuNQtxfafNgV",
+    //             "39azUYFWPz3VHgKCf3VChUwbpURdCHRxjWVowf5jUJjg",
+    //             "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw",
+    //             "94qWNrtmfn42h3ZjUZwWvK1MEo9uVmmrBPd2hpNjYDjb",
+    //         ].into_iter().map(|i| i.to_owned()).collect(),
+    //         readonly: vec![
+    //             "11111111111111111111111111111111",
+    //             "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+    //             "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf",
+    //             "SysvarRent111111111111111111111111111111111",
+    //             "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
+    //             "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+    //             "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+    //             "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+    //             "GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR",
+    //         ].into_iter().map(|i| i.to_owned()).collect()
+    //     };
+    //     let account_keys = AccountKeys::new(&static_keys, Some(&loaded_addresses));
+    //     let instruction_accounts: Vec<usize> = vec![9, 8, 5];  // burn
+    //     // let instruction_accounts: Vec<usize> = vec![1, 15];  // initializeaccount3
+    //     // let instruction_accounts: Vec<usize> = vec![8, 9, 4];  // token 2022 mintto
+    //     let parsed_i = token_instruction.parse(&account_keys, &instruction_accounts)?;
+    //     println!("{:#?}", parsed_i);
 
-        Ok(())
-    }
+    //     Ok(())
+    // }
 
     // #[test]
     // fn testing_account_keys() -> () {

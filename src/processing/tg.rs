@@ -9,18 +9,20 @@ use crate::{
 
 
 pub fn build_post_as_string(pair_meta: PairMeta) -> String {
-    let mut parts: Vec<String> = Vec::with_capacity(18);  // no re-allocation, if signers.len() <= 4
+    let mut parts: Vec<String> = Vec::with_capacity(19);  // no re-allocation, if signers.len() <= 4
 
     parts.push(format!(
         "📢 *NEW LIQUIDITY POOL DETECTED\\!*\n\n\
+        💎 *Decentralized Exchange: {}*\n\n\
         🔥 *Market ID:* `{}`",
+        pair_meta.dex.unwrap(),  // unwapping is safe
         pair_meta.market_id
     ));
 
     parts.push(craft_block_separator("AUTHORITY"));
 
     for (i, dev) in pair_meta.signers.iter().enumerate() {
-        parts.push(format!("🛠️ *DEV {}:* `{}`", i + 1, dev));
+        parts.push(format!("🛠️ *DEV {}:* `{}`", i + 1, dev));  // it's POOL CREATOR. And note POOL CREATOR is not necessary the person who minted tokens
     }
 
     for (i, shared_meta) in [pair_meta.base, pair_meta.quote].iter().enumerate() {
@@ -49,9 +51,23 @@ pub fn build_post_as_string(pair_meta: PairMeta) -> String {
         }
     }
 
-    if let Some(raydium_related) = pair_meta.raydium_related {
-        parts.push(craft_block_separator("RAYDIUM RELATED"));
-        parts.push(format!("🌊 *LP TOKEN MINT:* `{}`", raydium_related.lp_mint));
+    if let Some(lp_token) = pair_meta.lp_token {
+        parts.push(craft_block_separator("LP TOKEN"));
+        parts.push(format!("🌊 *MINT:* `{}`", lp_token.mint));
+        
+        if let Some(locked_liquidity) = lp_token.locked_liquidity_percentage {
+            let locked_liq_level: &str = match locked_liquidity {
+                liq if liq <= 60f64 => "LOW 🔴",
+                liq if liq <= 90f64 => "MEDIUM 🟡",
+                _ => "SAFE 🟢" 
+            };
+
+            parts.push(format!(
+                "🔒 *LOCKED LIQUIDITY:* `{}` — *{}*", 
+                format_ui_amount_for_markdownv2(locked_liquidity, Some(2)), 
+                locked_liq_level
+            ));
+        }
     }
 
     parts.join("\n\n")

@@ -37,7 +37,9 @@ pub async fn emit_processed_pair_meta(
                 let tx: GetTransaction = arc_rpc_client.get_transaction(signature, CommitmentLevel::Confirmed).await?;
                 let mut pair_meta: PairMeta = dex.process_transaction(tx).await?;
                 pair_meta.try_to_parse_mint_accounts(arc_rpc_client).await?;
-                pair_meta.parse_provided_liq_ratio(); 
+                pair_meta.try_to_parse_locked_liq_percentage(); 
+                pair_meta.parse_provided_liq_ratio();
+                pair_meta.dex = Some(dex);  // for tg post only
                 pm_tx.send(pair_meta).await?;
                 
                 Ok(()) as Result<(), Box<dyn std::error::Error + Send + Sync>>
@@ -116,6 +118,14 @@ impl PairMeta {
             if let Some(AccountType::Mint { supply, .. }) = shared_meta.mint_account {
                 shared_meta.provided_liq_ratio = Some((shared_meta.provided_liq_amount as f64 / supply as f64) * 100f64);
             } 
+        }
+    }
+
+    fn try_to_parse_locked_liq_percentage(&mut self) -> () {
+        if let Some(lp_token) = &mut self.lp_token {
+            if let Some(burnt_amount) = lp_token.tokens_burnt_amount {
+                lp_token.locked_liquidity_percentage = Some((lp_token.tokens_minted_amount - burnt_amount) as f64 * 100f64);
+            }
         }
     }  
 }

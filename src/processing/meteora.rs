@@ -28,7 +28,7 @@ use crate::{
 
 
 impl Dex {
-    /// 1. Attempt to decode `TransferChecked` instructions (for BASE & QUOTE mints)
+    /// 1. Attempt to decode `TransferChecked` token instructions (for BASE & QUOTE mints, VAULT addresses, provided liquidity AMOUNT, SIGNERS)
     /// 2. Try to parse `market_id` by knowing exact size of Anchor CPI log struct
     /// 3. Ensure the necessary fields in `PairMeta` are populated
     pub async fn meteora_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
@@ -66,7 +66,7 @@ impl Dex {
                     pair_meta.signers = signers;
                 }
             } else {
-                // size of anchor cpi log is 132 bytes
+                // size of anchor self cpi log is 132 bytes
                 if bytes.len() == 132 {
                     pair_meta.market_id.push_str(&bs58::encode(&bytes[16..48]).into_string());
                 }

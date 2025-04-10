@@ -27,7 +27,7 @@ use crate::{
             Parser, 
             PairMeta,
             SharedTokenMeta,
-            PairMetaRaydium,
+            LPTokenMeta,
             AccountKeys,
         },
     },
@@ -36,6 +36,11 @@ use crate::{
 
 
 impl Dex {
+    /// 1. Attempt to decode `Assign` system instruction (for MARKET_ID)
+    /// 2. Attempt to decode `InitializeAccount` token instructions (for BASE & QUOTE mints)
+    /// 3. Attempt to decode `Transfer` token instruction (for VAULT addresses, provided liquidity AMOUNT, SIGNERS)
+    /// 4. Attempt to decode `MintTo` token instruction (for LP token meta)
+    /// 5. Ensure the necessary fields in `PairMeta` are populated
     pub async fn raydium_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
         let mut pair_meta: PairMeta = PairMeta::default_preallocated();
         let tx_result: TransactionResult = tx.result;
@@ -76,10 +81,9 @@ impl Dex {
                 };
 
                 match parsed_instruction {
-                    token_instruction::ParsedInstruction::InitializeAccount { account, mint, .. } => {
+                    token_instruction::ParsedInstruction::InitializeAccount { mint, .. } => {
                         let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.mint.len() == 0, &mut pair_meta);
                         meta.mint.push_str(&mint);
-                        meta.vault.push_str(&account);
                     },
                     token_instruction::ParsedInstruction::Transfer { signers, destination, amount, .. } => {
                         let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.vault == destination, &mut pair_meta);
@@ -88,11 +92,9 @@ impl Dex {
                         pair_meta.signers = signers;
                     },
                     token_instruction::ParsedInstruction::MintTo { mint, amount, .. } => {
-                        let raydium: &mut PairMetaRaydium = pair_meta
-                            .raydium_related
-                            .get_or_insert(PairMetaRaydium::default_preallocated());
-                        raydium.lp_mint.push_str(&mint);
-                        raydium.lp_tokens_minted_amount = amount;
+                        let lp_token: &mut LPTokenMeta = pair_meta.get_mut_lp_token();
+                        lp_token.mint.push_str(&mint);
+                        lp_token.tokens_minted_amount = amount;
                     },
                     _ => continue
                 }
