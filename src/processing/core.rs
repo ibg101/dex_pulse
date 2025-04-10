@@ -124,7 +124,7 @@ impl PairMeta {
     fn try_to_parse_locked_liq_percentage(&mut self) -> () {
         if let Some(lp_token) = &mut self.lp_token {
             if let Some(burnt_amount) = lp_token.tokens_burnt_amount {
-                lp_token.locked_liquidity_percentage = Some((lp_token.tokens_minted_amount - burnt_amount) as f64 * 100f64);
+                lp_token.locked_liquidity_percentage = Some((burnt_amount as f64 / lp_token.tokens_minted_amount as f64) * 100f64);
             }
         }
     }  

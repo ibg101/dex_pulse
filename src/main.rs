@@ -41,10 +41,7 @@ mod test {
         bot::config::init_env()?;
         let config: bot::config::Config = bot::config::Config::init()?;
         let rpc_client: RpcClient = RpcClient::new_with_commitment(
-            // lava provider restricted some functionality, 
-            // such as doesn't provide inner_instructions data & some bugs appeared on their side related to json encoding
-            // config.http_url_mainnet.clone(),  
-            "https://api.mainnet-beta.solana.com".to_owned(),
+            config.http_url_mainnet.clone(),  
             CommitmentLevel::Processed    
         )?;
         // let raydium_signature: &'static str = "2R9NKfTTxSSsZ2c59tFcNzZoMPq4rgC364PuruJumG1iLki7pmv7BQLyajT6LGteWP9CUZkgfBAT9iLEkAorYxDo"; 

@@ -63,7 +63,7 @@ pub fn build_post_as_string(pair_meta: PairMeta) -> String {
             };
 
             parts.push(format!(
-                "🔒 *LOCKED LIQUIDITY:* `{}` — *{}*", 
+                "🔒 *LOCKED LIQUIDITY:* *{}%* — *{}*", 
                 format_ui_amount_for_markdownv2(locked_liquidity, Some(2)), 
                 locked_liq_level
             ));

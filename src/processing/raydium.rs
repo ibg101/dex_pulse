@@ -37,8 +37,8 @@ use crate::{
 
 impl Dex {
     /// 1. Attempt to decode `Assign` system instruction (for MARKET_ID)
-    /// 2. Attempt to decode `InitializeAccount` token instructions (for BASE & QUOTE mints)
-    /// 3. Attempt to decode `Transfer` token instruction (for VAULT addresses, provided liquidity AMOUNT, SIGNERS)
+    /// 2. Attempt to decode `InitializeAccount` token instructions (for BASE & QUOTE MINTS and VAULTS)
+    /// 3. Attempt to decode `Transfer` token instruction (for provided liquidity AMOUNT, SIGNERS)
     /// 4. Attempt to decode `MintTo` token instruction (for LP token meta)
     /// 5. Ensure the necessary fields in `PairMeta` are populated
     pub async fn raydium_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
@@ -81,13 +81,15 @@ impl Dex {
                 };
 
                 match parsed_instruction {
-                    token_instruction::ParsedInstruction::InitializeAccount { mint, .. } => {
+                    token_instruction::ParsedInstruction::InitializeAccount { account, mint, .. } => {
                         let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.mint.len() == 0, &mut pair_meta);
+                        meta.vault.push_str(&account);
                         meta.mint.push_str(&mint);
                     },
                     token_instruction::ParsedInstruction::Transfer { signers, destination, amount, .. } => {
+                        // im sure that there will be only 2 instructions `Token Program: Transfer` (for base & quote), 
+                        // therefore this logic is sufficient
                         let meta: &mut SharedTokenMeta = get_mut_shared_token_meta(pair_meta.base.vault == destination, &mut pair_meta);
-                        meta.vault.push_str(&destination);
                         meta.provided_liq_amount = amount;
                         pair_meta.signers = signers;
                     },
