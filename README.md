@@ -11,7 +11,7 @@ Built with **Rust**, this tool leverages the language’s performance to ensure 
 - **Custom Parsers**: The project uses custom-built parsers to analyze instructions. This minimizes code size, reduces the reliance on external crates, and enhances performance by using **base58** encoding in RPC requests **instead of the heavier jsonParsed** format.
 - **Custom Lightweight RpcClient**: This project uses a custom, lightweight RpcClient, which allows for minimal overhead and maximum performance. Unlike most projects, it does not rely on the Solana official crates, which ensures better control and efficiency when interacting with Solana RPC.
 - **No External Services or Aggregators**: This project doesn't rely on aggregators or other third-party services, except for plain **Solana RPC**. This ensures maximum control, security, and reliability.
-- **Multi-DEX Support**: The architecture is designed to support unlimited DEX platforms. Currently, **Raydium** and **Meteora** are implemented, with plans to extend support to other platforms in the future.
+- **Multi-DEX Support**: The architecture is designed to support unlimited DEX platforms. Currently, **Raydium**, **Meteora** and **PumpSwap** are implemented, with plans to extend support to other platforms in the future.
 - **Telegram Integration**: The bot can post real-time liquidity pool data to a [Telegram channel](https://t.me/dex_pulse_scanner), providing insights on new pools immediately after they are created. Additionally, you can configure the bot to send updates to **your own Telegram channel**. To do this, simply set the `TELOXIDE_TOKEN` variable to the token, which can be obtained from `@BotFather` on Telegram and `CHANNEL_USERNAME` variable to `@your_channel` (replace with your actual Telegram channel username) in the `.env` file. This requires setting up the project locally or [getting in touch with me](https://t.me/ivn_bets) to configure it for you.
 
 ## Metadata Provided
@@ -27,16 +27,18 @@ For every new liquidity pool detected, the bot extracts and displays the followi
 - **Token Authority Information**:
   - **Mint Authority**: The address responsible for minting new tokens.
   - **Freeze Authority**: The address that can freeze the bought tokens.
-- **Raydium-Specific Data**: For pools created through Raydium DEX, additional fields are provided:
-  - **LP Token Mint**: The mint address of the LP token, which will be used in future ws burn subscriptions in order to track locked liquidity.
-  - **LP Token Minted Amount**: The amount of LP tokens minted.
+- **LP Token Meta**: For pools that support minting LP tokens, additional fields are provided:
+  - **Mint**: The mint address of the LP token, which will be used in future ws burn subscriptions in order to track locked liquidity.
+  - **Minted Amount**: The amount of LP tokens minted.
+  - **Burnt Amount**: The amount of LP tokens burnt (if exists).
+  - **Locked Liquidity Percentage**: Displays the percentage of locked liquidity in the pool. Calculated only if the burnt amount is known.
 
 ## Architecture
 
 - **Rust-Based**: The project is written in Rust to leverage its performance and memory safety features.
 - **Custom Instruction Parsers**: Instruction parsers are custom-built and located in the utils/parser/ directory. These parsers handle the analysis of instructions without relying on external libraries, which reduces overhead and increases speed.
 - **Custom Lightweight RpcClient**: The project uses a custom, lightweight RpcClient and located in the rpc/ directory, which avoids the need for Solana crates and provides minimal overhead for maximum performance when interacting with Solana RPC.
-- **Support for Multiple DEXs**: While the current implementation supports Raydium and Meteora, the architecture allows for easy extension to additional Solana-based DEX platforms in the future.
+- **Support for Multiple DEXs**: While the current implementation supports Raydium, Meteora and PumpSwap, the architecture allows for easy extension to additional Solana-based DEX platforms in the future.
 - **Modular Architecture**: The project is divided into several modular components, each designed to handle specific tasks. This structure allows for clean separation of concerns and scalability.
   - **Bot** Module: The heart of the project, responsible for elegantly connecting all functions and orchestrating the flow of data between different components.
   - **Observations** Module: Contains the logic for filtering WebSocket (WS) events and orchestrator functions that handle WSS.
