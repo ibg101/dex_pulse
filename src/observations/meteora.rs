@@ -41,11 +41,10 @@ impl Dex {
                 is_successfully_created = true;
             }
             
-            if is_init_pos_instruction && times_bin_array_was_init == 2 && is_successfully_created { break; }
-        }
-    
-        if is_init_pos_instruction && times_bin_array_was_init == 2 && is_successfully_created {
-            self.push_signature_to_channel(logs_value.signature, tx).await;
+            if is_init_pos_instruction && times_bin_array_was_init == 2 && is_successfully_created { 
+                self.push_signature_to_channel(logs_value.signature, tx).await;
+                break; 
+            }
         }
     }
 }

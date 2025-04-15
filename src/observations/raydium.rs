@@ -35,11 +35,10 @@ impl Dex {
                 is_successfully_created = true;
             }
 
-            if is_creation_instruction && is_successfully_created { break; }
-        }
-    
-        if is_creation_instruction && is_successfully_created {
-            self.push_signature_to_channel(logs_value.signature, tx).await;
+            if is_creation_instruction && is_successfully_created { 
+                self.push_signature_to_channel(logs_value.signature, tx).await;
+                break; 
+            }
         }
     }
 }

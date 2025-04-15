@@ -35,11 +35,10 @@ impl Dex {
                 is_creation_instruction = true;
             }
 
-            if is_creation_instruction && is_pumpswap_amm { break; }
-        }
-
-        if is_pumpswap_amm && is_creation_instruction { 
-            self.push_signature_to_channel(logs_value.signature, tx).await; 
+            if is_creation_instruction && is_pumpswap_amm { 
+                self.push_signature_to_channel(logs_value.signature, tx).await; 
+                break; 
+            }
         }
     }
 }
