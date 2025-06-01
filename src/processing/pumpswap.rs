@@ -3,9 +3,12 @@ use super::core::{
     check_necessary_fields_filled
 };
 use crate::{
-    utils::parser::token_instruction::{
-        self,
-        TokenInstruction
+    utils::parser::{
+        token_instruction::{
+            self,
+            TokenInstruction
+        },
+        pumpswap::AMMAnchorCPILog
     },
     types::{
         error::Error,
@@ -32,7 +35,7 @@ impl Dex {
     /// 1. Attempt to decode `TransferChecked` token instructions (for BASE & QUOTE mints, VAULT addresses, provided liquidity AMOUNT)
     /// 2. Attempt to decode `MintTo` token instruction (for LP token meta)
     /// 3. Attempt to decode `Burn` token instruction, if exists (for burnt AMOUNT)
-    /// 4. Try to parse `signer` by knowing exact size of Anchor CPI log struct
+    /// 4. Try to parse `signer` from `AMMAnchorCPILog`
     /// 5. Ensure the necessary fields in `PairMeta` are populated
     pub async fn pumpswap_process_transaction(&self, tx: GetTransaction) -> Result<PairMeta, Box<dyn std::error::Error + Send + Sync>> {
         let mut pair_meta: PairMeta = PairMeta::default_preallocated();
@@ -49,6 +52,7 @@ impl Dex {
             .ok_or(Error::ProcessTransaction)?;
 
         // early termination flags
+        let mut parsed_dev: bool = false;
         let mut processed_burn: bool = false;
         let mut processed_mint_to: bool = false;
         let mut processed_transfer_checked_times: u8 = 0;
@@ -56,7 +60,7 @@ impl Dex {
         // using rev because all instructions i need to parse are located at the end => performance boost (only if early termination is implemented)
         for instruction in pumpfun_migrate_inner_instruction.instructions.into_iter().rev() {
             let bytes: Vec<u8> = bs58::decode(instruction.data).into_vec()?;
-
+            
             if let Ok(token_instruction) = TokenInstruction::unpack(&bytes) {
                 let parsed_instruction: token_instruction::ParsedInstruction = match token_instruction.parse(&account_keys, &instruction.accounts) {
                     Ok(v) => v,
@@ -91,17 +95,14 @@ impl Dex {
                     },
                     _ => continue
                 }
-            } else if pair_meta.signers.len() == 0 {
-                // size of anchor self cpi log is 176 bytes | 309 bytes (based on the tx)
-                let pubkey_bytes_slice: &[u8] = match bytes.len() {
-                    176 => &bytes[16..48],  // migrate + create pool; example signature: 4ejDPRGBYF43zg8Hpu8gApjZN8yurQkcXNwnMXVKrzQZQHexFXFqVd1VLFZpa6eGWz39Vxo6Nhbz99aKbhz3CfAv 
-                    309 => &bytes[26..58],  // create pool; example signature: bfVLmwBzDgNrpycKXHXWg1eWb9r2DJuDMWAfGFRzbenQZBzTCmM7f9VfP5sesFyGdTv4eqb7W9f74u1tckaJ7V2
-                    _ => continue
-                };
-                pair_meta.signers.push(bs58::encode(pubkey_bytes_slice).into_string())
+            } else if !parsed_dev {
+                if let Ok(dev) = AMMAnchorCPILog::try_parse_creator(&bytes) {
+                    pair_meta.signers.push(dev);
+                    parsed_dev = true;
+                }
             }
 
-            if processed_burn && processed_mint_to && processed_transfer_checked_times == 2 { break; }
+            if parsed_dev && processed_burn && processed_mint_to && processed_transfer_checked_times == 2 { break; }
         }
 
         check_necessary_fields_filled(&pair_meta)?;

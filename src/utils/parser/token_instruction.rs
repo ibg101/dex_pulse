@@ -1,4 +1,8 @@
-use super::shared;
+use super::shared::{
+    unpack_u64,
+    unpack_amount_and_decimals,
+    validate_instruction_accounts_len
+};
 use crate::types::{
     error::Error,
     custom::{AccountKeys, Unpack, Parser}, 
@@ -104,7 +108,7 @@ impl Unpack for TokenInstruction {
         Ok(match instruction_type {
             1 => Self::InitializeAccount,
             3 | 7 | 8 => {
-                let (amount, _) = Self::unpack_u64(rest)?;
+                let (amount, _) = unpack_u64(rest)?;
                 match instruction_type {                    
                     3 => Self::Transfer { amount },
                     7 => Self::MintTo { amount },
@@ -113,7 +117,7 @@ impl Unpack for TokenInstruction {
                 }
             },
             12 => {
-                let (amount, decimals, _) = Self::unpack_amount_and_decimals(rest)?;
+                let (amount, decimals, _) = unpack_amount_and_decimals(rest)?;
                 Self::TransferChecked { amount, decimals }
             },
             // 18 => {
@@ -131,7 +135,7 @@ impl Parser<ParsedInstruction> for TokenInstruction {
         let parsed_instruction = 
             match self {
                 Self::InitializeAccount => {
-                    shared::validate_instruction_accounts_len(instruction_accounts, 4)?;
+                    validate_instruction_accounts_len(instruction_accounts, 4)?;
                     ParsedInstruction::InitializeAccount { 
                         account: account_keys[instruction_accounts[0]].clone(), 
                         mint: account_keys[instruction_accounts[1]].clone(), 
@@ -148,7 +152,7 @@ impl Parser<ParsedInstruction> for TokenInstruction {
                 //     }
                 // },
                 Self::MintTo { amount } => {
-                    shared::validate_instruction_accounts_len(instruction_accounts, 3)?;
+                    validate_instruction_accounts_len(instruction_accounts, 3)?;
                 
                     let unfinished_instruction: ParsedInstruction = ParsedInstruction::MintTo { 
                         mint_signers: vec![], 
@@ -160,7 +164,7 @@ impl Parser<ParsedInstruction> for TokenInstruction {
                     unfinished_instruction.parse_signers(2, account_keys, instruction_accounts)?
                 },
                 Self::Burn { amount } => {
-                    shared::validate_instruction_accounts_len(instruction_accounts, 3)?;
+                    validate_instruction_accounts_len(instruction_accounts, 3)?;
 
                     let unfinished_instruction: ParsedInstruction = ParsedInstruction::Burn { 
                         signers: vec![], 
@@ -172,7 +176,7 @@ impl Parser<ParsedInstruction> for TokenInstruction {
                     unfinished_instruction.parse_signers(2, account_keys, instruction_accounts)?
                 },
                 Self::Transfer { amount } => {
-                    shared::validate_instruction_accounts_len(instruction_accounts, 3)?;
+                    validate_instruction_accounts_len(instruction_accounts, 3)?;
 
                     let unfinished_instruction: ParsedInstruction = ParsedInstruction::Transfer { 
                         signers: vec![], 
@@ -184,7 +188,7 @@ impl Parser<ParsedInstruction> for TokenInstruction {
                     unfinished_instruction.parse_signers(2, account_keys, instruction_accounts)?
                 },
                 Self::TransferChecked { amount, decimals } => {
-                    shared::validate_instruction_accounts_len(instruction_accounts, 4)?;
+                    validate_instruction_accounts_len(instruction_accounts, 4)?;
 
                     let unfinished_instruction: ParsedInstruction = ParsedInstruction::TransferChecked {
                         signers: vec![],  // must be filled
@@ -200,32 +204,5 @@ impl Parser<ParsedInstruction> for TokenInstruction {
             };
         
         Ok(parsed_instruction)
-    }
-}
-
-impl TokenInstruction {
-    // fn unpack_key(data: &[u8]) -> Result<(String, &[u8]), Error> {
-    //     let key: String = data
-    //         .get(..32)
-    //         .map(|slice| bs58::encode(slice).into_string())
-    //         .ok_or(Error::InvalidInstruction)?;
-
-    //     Ok((key, &data[32..]))
-    // }
-
-    fn unpack_u64(data: &[u8]) -> Result<(u64, &[u8]), Error> {
-        let amount: u64 = data
-            .get(..8)
-            .and_then(|slice| slice.try_into().ok())
-            .map(u64::from_le_bytes)
-            .ok_or(Error::InvalidInstruction)?;
-        
-        Ok((amount, &data[8..]))
-    }
-
-    fn unpack_amount_and_decimals(data: &[u8]) -> Result<(u64, u8, &[u8]), Error> {
-        let (amount, rest) = Self::unpack_u64(data)?;
-        let (&decimals, rest) = rest.split_first().ok_or(Error::InvalidInstruction)?;
-        Ok((amount, decimals, rest))
     }
 }

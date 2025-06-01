@@ -31,6 +31,10 @@ mod test {
     use utils::parser::{
         token_instruction::TokenInstruction,
         system_instruction::SystemInstruction,
+        pumpswap::{
+            AMMAnchorCPILog,
+            // CreatePoolInstruction
+        },
         account::AccountType,
     };
     use futures_util::Future;
@@ -47,12 +51,14 @@ mod test {
         // let raydium_signature: &'static str = "2R9NKfTTxSSsZ2c59tFcNzZoMPq4rgC364PuruJumG1iLki7pmv7BQLyajT6LGteWP9CUZkgfBAT9iLEkAorYxDo"; 
         // let meteora_signature: &'static str = "487swy1ZX9eNuQPdCasVD1fvWTboQNewowavcat7ejPukcqGkDaw35ApCUpzneQnznGPqAejVtKCKjfpsEvA4WxQ";
         // let meteora_signature: &'static str = "67EUGqosmoQFHPyjaSmQsh8dRUQzqQzVaEfwmhQWZiKsCjxsTKqSojUkUC8Thc2TyyBz4Woq8CvMsAmJwBnneW4F";
-        let pumpswap_signature: &'static str = "2g66jSg8j6Tgyd9Js2wmR5U56hZpL4mkBpRfMdXoTJDrJHyfsodF38pEAv3CUyBNJubfboSxRotUbxzpvM2JBEif";
+        // let pumpswap_signature: &'static str = "2g66jSg8j6Tgyd9Js2wmR5U56hZpL4mkBpRfMdXoTJDrJHyfsodF38pEAv3CUyBNJubfboSxRotUbxzpvM2JBEif";
+        let pumpswap_signature: &'static str = "4ejDPRGBYF43zg8Hpu8gApjZN8yurQkcXNwnMXVKrzQZQHexFXFqVd1VLFZpa6eGWz39Vxo6Nhbz99aKbhz3CfAv";
+        // let pumpswap_signature: &'static str = "bfVLmwBzDgNrpycKXHXWg1eWb9r2DJuDMWAfGFRzbenQZBzTCmM7f9VfP5sesFyGdTv4eqb7W9f74u1tckaJ7V2";
         // let pumpswap_signature: &'static str = "4DSjpA5wVoYiK8w47KoffJKZi25nuVXJfb85EjKn9Fd7iGDTrat5as7vijjBmhLYg8EtohDhiD3uBy2qaDcb35WV";
         let transaction = rpc_client.get_transaction(pumpswap_signature, CommitmentLevel::Confirmed).await?;
-        // println!("{:#?}", transaction);
-        let processed_tx_raw = Dex::PumpSwap.process_transaction(transaction).await?;
-        println!("{:#?}", processed_tx_raw);
+        println!("{:#?}", transaction);
+        // let processed_tx_raw = Dex::PumpSwap.process_transaction(transaction).await?;
+        // println!("{:#?}", processed_tx_raw);
 
         // let not_mintable_not_freezable: &str = "y7D9BxVeQ5iwwd7yC8R3VsW1prWpsPkcnq63eSupump";
         // let mintable_freezable: &str = "4CUAn6CgkcirqTQ9nmpcFtYNaDT3vgWTCZjPL7Tp7Eei";
@@ -80,7 +86,6 @@ mod test {
     //     println!("is equal: {:?}", &bytes[26..58] == dev_key_bytes);
 
     //     println!("{}", bs58::encode(&bytes[26..58]).into_string());
-
     //     Ok(())
     // }
 
@@ -332,4 +337,68 @@ mod test {
         
     //     Ok(())
     // }
+
+    // #[test]
+    // fn parse_create_pool() -> () {
+        // let static_account_keys = vec![
+        //     "999998H51LaVaPCK9TDVHiFv8HJGLFaDrPrkYSQeCSLM",
+        //     "86baHMQKmNAbkPaAPvxjxHtgKEmSwHxViD3Cq95NfxRE",
+        //     "3zTUyUwCx2KQYWCfpkotRSR7AuYyRJHLRh981kZSaYAg",
+        //     "8hMRpndoq2ssLGXSWeDSakK9sLRfTF4oJ1XG8UWckcYV",
+        //     "5upCJsFQK9cbzejXCskfqq3ZADsFxe1SG9hoJ3gsqGTP",
+        //     "Bp717hZ4uTbLxZXjurxrfAtwKeXpfrdHX14fqhZdRPuV",
+        //     "37KFah7zDCUbvxdmpzw8dxf4hW2HtQfsAJjYZVNGeRk4",
+        //     "Ahu6mifSoaHyuqfBXEmEFH9Sevs5sX27V39inNGjw9XC",
+        //     "BgUPrQy7wM4dpfw3Wkgv44hHyPynCyTUaAnYt4NyG21",
+        //     "Gdhy34c3HPa46ssjBxzYuEfS2ZpBnvrAQWi3EMeQA7tv",
+        //     "FVC1GbffdD54vjpLGKMkHPFwqdbQRxQajgyLJxqM6gLr",
+        //     "2MknRtvgBzwTJbJhUbiUdzpahhDGwE7xiXBhEbcCWBDs",
+        //     "6T6oxn3AFkQKVQnjzSynYGRmkNobFSf89nV8mAS5v3iH",
+        //     "ComputeBudget111111111111111111111111111111",
+        //     "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+        //     "BZ3cK6MVJ2FWzuoBci69wdcNM4LGsMNaHpc8Yin8pump",
+        //     "BBBBBBZy6FZkuzYrCvYh4DdwGZZMXFeKHZXXMq9vUCHN",
+        //     "So11111111111111111111111111111111111111112",
+        // ].into_iter().map(|addr| addr.to_owned()).collect::<Vec<_>>();
+        // let dynamic_keys = LoadedAddresses {
+        //     writable: vec![
+        //         "62qc2CNXwrYqQScmEdiZFFAnJR262PxWEuNQtxfafNgV",
+        //         "39azUYFWPz3VHgKCf3VChUwbpURdCHRxjWVowf5jUJjg",
+        //         "ADyA8hdefvWN2dbGGWFotbzWxrAvLW83WG6QCVXvJKqw",
+        //         "94qWNrtmfn42h3ZjUZwWvK1MEo9uVmmrBPd2hpNjYDjb",
+        //     ].into_iter().map(|addr| addr.to_owned()).collect::<Vec<_>>(),
+        //     readonly: vec![
+        //         "11111111111111111111111111111111",   // 22 index
+        //         "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //         "4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf",
+        //         "SysvarRent111111111111111111111111111111111",
+        //         "Ce6TQqeHC9p8KetsN6JsjHK7UTZk7nasjjnr7XxXp9F1",
+        //         "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P",
+        //         "pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA",
+        //         "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //         "GS4CU59F31iL7aR2Q8zVS8DRrcRnXX1yjQ66TqNVQnaR",
+        //     ].into_iter().map(|addr| addr.to_owned()).collect::<Vec<_>>()
+        // };
+
+        // let account_keys = AccountKeys::new(&static_account_keys, Some(&dynamic_keys));
+        // println!("{:#?}", account_keys[22]);
+
+
+        // let data = "89qBdnKbVfeW4XmoFaNf32P6jSYLhkcG7fhR";
+        // // let data: &str = "38ENJsBN1u5UXLrqwVDVJbdJezJ5ENpYk2YRMBuX8dY2kGT7kj21VUuSzdBRhFjrU1ibVWLEdg56bBwL";
+        // let bytes: Vec<u8> = bs58::decode(data).into_vec().unwrap();
+        // let create_pool = CreatePoolInstruction::unpack(&bytes).unwrap();
+        // println!("{:#?}", create_pool);
+    // }
+
+    #[test]
+    fn parse_dev_from_anchor_cpi_log() -> Result<(), Box<dyn std::error::Error>> {
+        // let data = "Ff4kLs7v3LMkTXcjPPitKpfc2geMRyqubgywNUfp5vGuQ6JTSUWw7Qfzm6FKxUawu9v8EYx9NEt4DKWyRM6tFyq93iegXtCYjc7iHxT17A3LVnttXp5dKSKvBcV25fKoPEGovPaS47Na8swCge9LAFXUCULaNFb8VEb7FTEJYXLsbJSuat2cspq42XQDDc2TsvURPKh2XN7zeL3EbP4b6hj6CRQxFwXoJQi7EdtM5FkLeq9WB9xCAVgQ9AjU7Em4hUyPbKGWcs3SAGdrm9VAFM32LFKUoknyUkbJh25bzJ32ordsHfFRu4L2ps7S6qTPW16byCh4rG8TDV8tKLamHCxPmvj57VvgChLwPHT1cM4zvCgs37VurudDxD7AqNCFbEKrR5bwhHk5q1QpQYu5Tj2pMNrrhExSV8TYMvqSWqQ1FacBnSqEcLLTBudkVfEvzFpV8bmZcNi3KBvMWE";
+        // let data = "rLaD5MVJGTSekbeMDJ6HPsjCNCh2MRLasnrK6A8jAS1Mh65PBKKHKWspjRHmgrx3BxbxiCN714xMTyWXut9RTD2vthdekLQxgzvRvuT9Ck4UBuXFqnuKWihC4Xu5dTQu6of1vDyP76i3QsMk792En4yLHygSMyEwnK4vze3tyAxKsTbUmuLk7FqHyhUvCGF6YHsPKktHh2bhZ4hwaH5DWJTD7vcTtNJKY9caGL8pq4AQtuQzH8TiiFizXW9AGockT9G38Mz5RasZQxyx5MoCSL8h9Ztk3NRRFvmJKNtbNPKE5oZrxeEgbfxQFQCR9QDNK4WAqFY6jJsN2UiEpCmonPT1HTNxEsAHc8WfKNa3uDNSmG5JLsgKeZyDJ7w9UQVa8qdrGugGFCQFuMT9rTK2ZTrosswjE78eXA8WXY";
+        let data = "Ff4kLs7v3LMkTXcjPPitKpRzref5wAPmFqDPqZgWAVwQh1q69dGqgrtbYyh5eAkbkypPfF4huwNxqS1ocpxVvYfPVFGMgs5cM6kQ62CkecxMjtc9vohW2cWqRowwHURxQyCe8vdUqJTcWgaCk5TjJGePiuPU7XLKVTMAxR8mh4tEe8FJRjtiuNuWNfZ6oEVAdkWdcywDXHGSTqm6cz7W31BPPffTSy3kU4Y6oyidvU7dFBnuRA1S3M5qaqNYP6vySCLMZrkevXrjarcbXQQHVMp6NGiKsASFWbY7NJ6U4Hwv18C6ZCWP1zULVEc8nR5WWt13SHUqkR5wk4PbaZ24KLytUhCzA2fsKrYKqgq5ciQw45ewHkPfb7EZ1YJ36fZzbVYGrkAmYgbo8KzoeAQM5EcPAbThXBjQHMeQoCKWtZkrfY8kni4g93LwD5vAxazXqLMNPqpkZjDyUMHmKV";
+        let bytes: Vec<u8> = bs58::decode(data).into_vec()?;
+        println!("{:?}", AMMAnchorCPILog::try_parse_creator(&bytes)?);
+        
+        Ok(())
+    }
 }

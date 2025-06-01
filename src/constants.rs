@@ -16,3 +16,5 @@ pub const PUMPSWAP_AMM_PROGRAM_ID: &'static str = "pAMMBay6oceH9fJKBRHGP5D4bD4sW
 // Although `initializeMint2` can also be used, `CreatePool` appears earlier in the logs array,
 // allowing to terminate the loop sooner and improve performance
 pub const PUMPSWAP_INSTRUCTION_CREATE_NEW_LP: &'static str = "CreatePool";
+pub const PUMPSWAP_CREATE_POOL_DISCRIMINATOR: [u8; 8] = [233, 146, 209, 142, 207, 104, 64, 188];
+pub const PUMPSWAP_ANCHOR_CPI_LOG_DISCRIMINATOR: [u8; 16] = [228, 69, 165, 46, 81, 203, 154, 29, 177, 49, 12, 210, 160, 118, 167, 116];

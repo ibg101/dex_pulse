@@ -41,7 +41,6 @@ pub async fn run(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     while let Some(pair_meta) = pm_rx.recv().await {
         log::info!("Received finalized: {:#?}", pair_meta);  // todo remove
         let msg: String = processing::tg::build_post_as_string(pair_meta);
-
         if let Err(e) = bot.send_message(
             config.channel_username.clone(), 
             msg
