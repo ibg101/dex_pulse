@@ -4,6 +4,10 @@
 
 Built with **Rust**, this tool leverages the language’s performance to ensure efficient detection of liquidity pool creation transactions, often before the transaction achieves a **finalized commitment**. The project is designed to be **lightweight** and **efficient**, with **minimal external dependencies**, providing **real-time** liquidity pool data for Solana-based decentralized exchanges (DEX).
 
+## Demo
+
+![Demo](./demo/demo2.gif)
+
 ## Features
 
 - **Real-Time Liquidity Pool Detection**: DEX Pulse scans for newly created liquidity pools on the Solana blockchain and provides critical metadata in real-time.
